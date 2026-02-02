@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'home_absensi.dart';
+import 'kalender.dart';
 
 const orangeMain = Color.fromARGB(255, 254, 111, 71);
 const orangeSoft = Color(0xFFFFC09A);
+const yellowQR = Color(0xFFFFC107);
 
 class NavbarPage extends StatefulWidget {
   const NavbarPage({super.key});
@@ -13,16 +15,23 @@ class NavbarPage extends StatefulWidget {
 
 class _NavbarPageState extends State<NavbarPage> {
   int index = 0;
+  final PageController _pageController = PageController();
 
   final pages = const [
     HomePage(),
-    HomePage(), // dummy jadwal
+    KalenderPage(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: pages[index],
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (i) {
+          setState(() => index = i);
+        },
+        children: pages,
+      ),
       floatingActionButtonLocation:
           FloatingActionButtonLocation.centerDocked,
       floatingActionButton: _qrButton(),
@@ -30,7 +39,7 @@ class _NavbarPageState extends State<NavbarPage> {
     );
   }
 
-  // ================= BOTTOM NAV =================
+  // ================= BOTTOM NAV (TIDAK DIUBAH) =================
   Widget _bottomNav() {
     return Container(
       decoration: const BoxDecoration(
@@ -61,13 +70,19 @@ class _NavbarPageState extends State<NavbarPage> {
                   _navIcon(
                     icon: Icons.dashboard_rounded,
                     isActive: index == 0,
-                    onTap: () => setState(() => index = 0),
+                    onTap: () {
+                      setState(() => index = 0);
+                      _pageController.jumpToPage(0);
+                    },
                   ),
                   const SizedBox(width: 72),
                   _navIcon(
                     icon: Icons.event_available_rounded,
                     isActive: index == 1,
-                    onTap: () => setState(() => index = 1),
+                    onTap: () {
+                      setState(() => index = 1);
+                      _pageController.jumpToPage(1);
+                    },
                   ),
                 ],
               ),
@@ -78,7 +93,7 @@ class _NavbarPageState extends State<NavbarPage> {
     );
   }
 
-  // ================= NAV ICON (GLOW ANIMATE) =================
+  // ================= NAV ICON (ASLI) =================
   Widget _navIcon({
     required IconData icon,
     required bool isActive,
@@ -116,24 +131,24 @@ class _NavbarPageState extends State<NavbarPage> {
     );
   }
 
-  // ================= QR BUTTON =================
+  // ================= QR BUTTON (LINGKARAN KUNING) =================
   Widget _qrButton() {
     return Container(
       width: 86,
       height: 86,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: Colors.white,
+        color: yellowQR, // 🟡 kuning
         boxShadow: [
           BoxShadow(
             blurRadius: 30,
-            color: orangeMain.withOpacity(.45),
+            color: yellowQR.withOpacity(.6),
           )
         ],
       ),
       child: FloatingActionButton(
         elevation: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: yellowQR,
         onPressed: () {},
         shape: const CircleBorder(),
         child: Container(
