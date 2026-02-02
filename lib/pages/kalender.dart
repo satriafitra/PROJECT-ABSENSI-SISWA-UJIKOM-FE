@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'riwayat_absensi.dart';
 
 const orangeMain = Color.fromARGB(255, 254, 111, 71);
 const orangeSoft = Color(0xFFFFE0CC);
@@ -273,9 +274,36 @@ class _KalenderPageState extends State<KalenderPage> {
           const SizedBox(height: 18),
           Row(
             children: [
-              _actionBtn("Lihat Jadwal"),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    // TODO: Navigasi ke halaman jadwal (kalau ada)
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const KalenderPage(), // contoh placeholder
+                      ),
+                    );
+                  },
+                  child: _actionBtn("Lihat Jadwal"),
+                ),
+              ),
               const SizedBox(width: 12),
-              _actionBtn("Lihat Absen", filled: true),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    // Navigasi ke halaman Riwayat Absensi
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const RiwayatAbsensiPage(),
+                      ),
+                    );
+                  },
+                  child: _actionBtn("Lihat Absen", filled: true),
+                ),
+              ),
             ],
           )
         ],

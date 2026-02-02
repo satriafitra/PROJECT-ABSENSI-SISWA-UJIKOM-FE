@@ -146,17 +146,17 @@ class _NavbarPageState extends State<NavbarPage> {
       height: 86,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: const Color.fromARGB(255, 255, 224, 131),
+        color: const Color.fromARGB(255, 255, 123, 29),
         boxShadow: [
           BoxShadow(
             blurRadius: 30,
-            color: yellowQR.withOpacity(.6),
+            color: const Color.fromARGB(255, 255, 98, 36).withOpacity(.6),
           )
         ],
       ),
       child: FloatingActionButton(
         elevation: 0,
-        backgroundColor: yellowQR,
+        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
         onPressed: () {},
         shape: const CircleBorder(),
         child: Container(
@@ -168,7 +168,7 @@ class _NavbarPageState extends State<NavbarPage> {
           ),
           child: const Icon(
             Icons.qr_code_scanner_rounded,
-            size: 34,
+            size: 39,
             color: Colors.white,
           ),
         ),
