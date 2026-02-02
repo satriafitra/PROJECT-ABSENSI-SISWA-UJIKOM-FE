@@ -16,9 +16,9 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(
+            horizontal: 20), // Hapus padding top/bottom
         children: [
-          const SizedBox(height: 20),
           _dateCard(),
           const SizedBox(height: 20),
           const ScheduleCard(
@@ -40,8 +40,6 @@ class HomePage extends StatelessWidget {
       ),
     );
   }
-
- 
 
   Widget _dateCard() {
     return ClipRRect(
@@ -106,6 +104,7 @@ class HomePage extends StatelessWidget {
                             const TextSpan(
                               text: "22",
                               style: TextStyle(
+                                fontFamily: "Montserrat",
                                 fontSize: 56,
                                 fontWeight: FontWeight.w700,
                                 color: orangeDark,

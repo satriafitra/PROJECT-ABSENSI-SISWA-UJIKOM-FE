@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'home_absensi.dart';
+import 'qr_scanner_page.dart';
 import 'kalender.dart';
 import '../widgets/app_header.dart';
 
@@ -139,38 +140,30 @@ class _NavbarPageState extends State<NavbarPage> {
     );
   }
 
-  // ================= QR BUTTON =================
+// ================= QR BUTTON =================
   Widget _qrButton() {
-    return Container(
-      width: 86,
-      height: 86,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: const Color.fromARGB(255, 255, 123, 29),
-        boxShadow: [
-          BoxShadow(
-            blurRadius: 30,
-            color: const Color.fromARGB(255, 255, 98, 36).withOpacity(.6),
-          )
-        ],
-      ),
-      child: FloatingActionButton(
-        elevation: 0,
-        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-        onPressed: () {},
-        shape: const CircleBorder(),
-        child: Container(
-          width: 64,
-          height: 64,
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            color: orangeMain,
-          ),
-          child: const Icon(
-            Icons.qr_code_scanner_rounded,
-            size: 39,
-            color: Colors.white,
-          ),
+    return FloatingActionButton(
+      elevation: 0,
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+      onPressed: () {
+        // Navigate ke halaman QR Scan
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const QrScanPage()),
+        );
+      },
+      shape: const CircleBorder(),
+      child: Container(
+        width: 64,
+        height: 64,
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          color: orangeMain,
+        ),
+        child: const Icon(
+          Icons.qr_code_scanner_rounded,
+          size: 39,
+          color: Colors.white,
         ),
       ),
     );

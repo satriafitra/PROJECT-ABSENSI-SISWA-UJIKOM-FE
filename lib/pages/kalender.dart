@@ -66,7 +66,7 @@ class _KalenderPageState extends State<KalenderPage> {
         ),
         SizedBox(height: 6),
         Text(
-          "Pantau kehadiran sekolahmu",
+          "Lihat aktivitas hari mu di sekolah, semoga hari kamu menyenangkan !!",
           style: TextStyle(
             fontFamily: 'Poppins',
             color: Colors.black54,
