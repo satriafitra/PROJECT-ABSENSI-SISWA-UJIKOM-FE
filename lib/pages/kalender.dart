@@ -24,19 +24,28 @@ class _KalenderPageState extends State<KalenderPage> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _header(),
-            const SizedBox(height: 20),
-            _calendarCard(),
-            const SizedBox(height: 20),
-            _infoCard(),
-          ],
-        ),
+    return Scaffold(
+      body: Column(
+        children: [
+          /// 🔥 HEADER TETAP
+
+          /// 🔥 KONTEN BISA SCROLL
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _header(),
+                  const SizedBox(height: 20),
+                  _calendarCard(),
+                  const SizedBox(height: 20),
+                  _infoCard(),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -70,8 +79,7 @@ class _KalenderPageState extends State<KalenderPage> {
   Widget _calendarCard() {
     final daysInMonth =
         DateUtils.getDaysInMonth(currentMonth.year, currentMonth.month);
-    final firstDay =
-        DateTime(currentMonth.year, currentMonth.month, 1).weekday;
+    final firstDay = DateTime(currentMonth.year, currentMonth.month, 1).weekday;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -102,8 +110,7 @@ class _KalenderPageState extends State<KalenderPage> {
               if (index < firstDay - 1) return const SizedBox();
 
               final day = index - firstDay + 2;
-              final date = DateTime(
-                  currentMonth.year, currentMonth.month, day);
+              final date = DateTime(currentMonth.year, currentMonth.month, day);
               final dateKey = DateFormat('yyyy-MM-dd').format(date);
 
               return _dateItem(
@@ -125,8 +132,7 @@ class _KalenderPageState extends State<KalenderPage> {
       children: [
         _iconBtn(Icons.chevron_left, () {
           setState(() {
-            currentMonth =
-                DateTime(currentMonth.year, currentMonth.month - 1);
+            currentMonth = DateTime(currentMonth.year, currentMonth.month - 1);
           });
         }),
         Text(
@@ -139,8 +145,7 @@ class _KalenderPageState extends State<KalenderPage> {
         ),
         _iconBtn(Icons.chevron_right, () {
           setState(() {
-            currentMonth =
-                DateTime(currentMonth.year, currentMonth.month + 1);
+            currentMonth = DateTime(currentMonth.year, currentMonth.month + 1);
           });
         }),
       ],
@@ -188,8 +193,8 @@ class _KalenderPageState extends State<KalenderPage> {
     required DateTime date,
     String? status,
   }) {
-    bool isSelected = selectedDate != null &&
-        DateUtils.isSameDay(selectedDate, date);
+    bool isSelected =
+        selectedDate != null && DateUtils.isSameDay(selectedDate, date);
 
     Color bgColor = Colors.white;
     Color textColor = Colors.black;
@@ -257,7 +262,7 @@ class _KalenderPageState extends State<KalenderPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            "Riwayat & Jadwal",
+            "Ingin melihat Riwayat Absen atau Kehadiran dan Jadwal ?",
             style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 16,
@@ -265,7 +270,7 @@ class _KalenderPageState extends State<KalenderPage> {
               color: orangeMain,
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 18),
           Row(
             children: [
               _actionBtn("Lihat Jadwal"),

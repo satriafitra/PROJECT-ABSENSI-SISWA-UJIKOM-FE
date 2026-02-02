@@ -18,7 +18,6 @@ class HomePage extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _topBar(),
           const SizedBox(height: 20),
           _dateCard(),
           const SizedBox(height: 20),
@@ -42,40 +41,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _topBar() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        const Icon(Icons.notifications_none),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(30),
-            boxShadow: [
-              BoxShadow(
-                blurRadius: 12,
-                color: Colors.black.withOpacity(.06),
-              ),
-            ],
-          ),
-          child: const Row(
-            children: [
-              CircleAvatar(
-                radius: 14,
-                backgroundColor: orangeSoft,
-                child: Icon(Icons.person, color: orangeMain, size: 16),
-              ),
-              SizedBox(width: 8),
-              Text("Hallow Jeremy!",
-                  style: TextStyle(fontWeight: FontWeight.w500)),
-            ],
-          ),
-        ),
-        const Icon(Icons.menu),
-      ],
-    );
-  }
+ 
 
   Widget _dateCard() {
     return ClipRRect(

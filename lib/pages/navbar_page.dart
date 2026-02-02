@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'home_absensi.dart';
 import 'kalender.dart';
+import '../widgets/app_header.dart';
 
 const orangeMain = Color.fromARGB(255, 254, 111, 71);
 const orangeSoft = Color(0xFFFFC09A);
@@ -25,15 +26,23 @@ class _NavbarPageState extends State<NavbarPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: PageView(
-        controller: _pageController,
-        onPageChanged: (i) {
-          setState(() => index = i);
-        },
-        children: pages,
+      // ================= HEADER GLOBAL =================
+      body: Column(
+        children: [
+          const AppHeader(), // 🔥 Hanya 1 kali di Navbar
+          Expanded(
+            child: PageView(
+              controller: _pageController,
+              onPageChanged: (i) {
+                setState(() => index = i);
+              },
+              children: pages,
+            ),
+          ),
+        ],
       ),
-      floatingActionButtonLocation:
-          FloatingActionButtonLocation.centerDocked,
+
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: _qrButton(),
       bottomNavigationBar: _bottomNav(),
     );
@@ -93,7 +102,6 @@ class _NavbarPageState extends State<NavbarPage> {
     );
   }
 
-  // ================= NAV ICON (ASLI) =================
   Widget _navIcon({
     required IconData icon,
     required bool isActive,
@@ -131,14 +139,14 @@ class _NavbarPageState extends State<NavbarPage> {
     );
   }
 
-  // ================= QR BUTTON (LINGKARAN KUNING) =================
+  // ================= QR BUTTON =================
   Widget _qrButton() {
     return Container(
       width: 86,
       height: 86,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: yellowQR, // 🟡 kuning
+        color: const Color.fromARGB(255, 255, 224, 131),
         boxShadow: [
           BoxShadow(
             blurRadius: 30,
