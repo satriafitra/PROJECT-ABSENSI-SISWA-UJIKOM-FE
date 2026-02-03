@@ -28,8 +28,6 @@ class _KalenderPageState extends State<KalenderPage> {
     return Scaffold(
       body: Column(
         children: [
-          /// 🔥 HEADER TETAP
-
           /// 🔥 KONTEN BISA SCROLL
           Expanded(
             child: SingleChildScrollView(
@@ -94,17 +92,18 @@ class _KalenderPageState extends State<KalenderPage> {
       child: Column(
         children: [
           _monthSwitcher(),
-          const SizedBox(height: 16),
+          const SizedBox(height: 16), // Jarak ke Day Header
           _dayHeader(),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12), // 🔥 JARAK DIPERECIL ke Grid Tanggal agar lebih rapat
           GridView.builder(
             shrinkWrap: true,
+            padding: EdgeInsets.zero, // Pastikan tidak ada padding tambahan
             physics: const NeverScrollableScrollPhysics(),
             itemCount: daysInMonth + firstDay - 1,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 7,
-              mainAxisSpacing: 10,
-              crossAxisSpacing: 10,
+              mainAxisSpacing: 8, // 🔥 JARAK ANTAR BARIS TANGGAL diperapat
+              crossAxisSpacing: 8, // 🔥 JARAK ANTAR KOLOM TANGGAL diperapat
               childAspectRatio: 1,
             ),
             itemBuilder: (context, index) {
@@ -140,7 +139,7 @@ class _KalenderPageState extends State<KalenderPage> {
           DateFormat('MMMM yyyy', 'id').format(currentMonth),
           style: const TextStyle(
             fontFamily: 'Poppins',
-            fontSize: 22,
+            fontSize: 20, // Sedikit disesuaikan agar rapi
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -155,11 +154,14 @@ class _KalenderPageState extends State<KalenderPage> {
 
   Widget _iconBtn(IconData icon, VoidCallback onTap) {
     return Container(
+      width: 40,
+      height: 40,
       decoration: const BoxDecoration(
         color: orangeSoft,
         shape: BoxShape.circle,
       ),
       child: IconButton(
+        iconSize: 20,
         icon: Icon(icon, color: orangeMain),
         onPressed: onTap,
       ),
@@ -178,8 +180,9 @@ class _KalenderPageState extends State<KalenderPage> {
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.bold,
                   fontSize: 12,
+                  color: Colors.black38, // Warna diperhalus agar rapi
                 ),
               ),
             ),
@@ -201,6 +204,7 @@ class _KalenderPageState extends State<KalenderPage> {
     Color textColor = Colors.black;
     String text = day.toString();
 
+    // Logic Warna Berdasarkan Status
     if (status == 'H') {
       bgColor = orangeMain;
       text = 'H';
@@ -215,6 +219,7 @@ class _KalenderPageState extends State<KalenderPage> {
       textColor = Colors.white;
     }
 
+    // Override jika tanggal dipilih manual
     if (isSelected) {
       bgColor = orangeMain;
       textColor = Colors.white;
@@ -231,7 +236,7 @@ class _KalenderPageState extends State<KalenderPage> {
           shape: BoxShape.circle,
           color: bgColor,
           border: Border.all(
-            color: orangeMain,
+            color: isSelected ? orangeMain : Colors.grey.withOpacity(0.1),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -241,6 +246,7 @@ class _KalenderPageState extends State<KalenderPage> {
           style: TextStyle(
             fontFamily: 'Poppins',
             fontWeight: FontWeight.w600,
+            fontSize: 14,
             color: textColor,
           ),
         ),
@@ -274,36 +280,18 @@ class _KalenderPageState extends State<KalenderPage> {
           const SizedBox(height: 18),
           Row(
             children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    // TODO: Navigasi ke halaman jadwal (kalau ada)
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            const KalenderPage(), // contoh placeholder
-                      ),
-                    );
-                  },
-                  child: _actionBtn("Lihat Jadwal"),
-                ),
-              ),
+              _actionBtn("Lihat Jadwal", onTap: () {
+                // Navigasi Jadwal
+              }),
               const SizedBox(width: 12),
-              Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    // Navigasi ke halaman Riwayat Absensi
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const RiwayatAbsensiPage(),
-                      ),
-                    );
-                  },
-                  child: _actionBtn("Lihat Absen", filled: true),
-                ),
-              ),
+              _actionBtn("Lihat Absen", filled: true, onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const RiwayatAbsensiPage(),
+                  ),
+                );
+              }),
             ],
           )
         ],
@@ -311,22 +299,25 @@ class _KalenderPageState extends State<KalenderPage> {
     );
   }
 
-  Widget _actionBtn(String text, {bool filled = false}) {
+  Widget _actionBtn(String text, {bool filled = false, required VoidCallback onTap}) {
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: filled ? orangeMain : Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: orangeMain),
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          text,
-          style: TextStyle(
-            fontFamily: 'Poppins',
-            color: filled ? Colors.white : orangeMain,
-            fontWeight: FontWeight.w600,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: filled ? orangeMain : Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: orangeMain),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            text,
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              color: filled ? Colors.white : orangeMain,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ),

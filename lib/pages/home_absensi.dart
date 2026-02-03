@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart'; // Import untuk format tanggal
 import '../widgets/schedule_card.dart';
 import '../widgets/week_status.dart';
 import '../widgets/curve_clipper.dart';
@@ -12,14 +13,37 @@ const textDark = Color(0xFF2E2E2E);
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
+  // Fungsi untuk mendapatkan akhiran tanggal (st, nd, rd, th)
+  String _getDaySuffix(int day) {
+    if (day >= 11 && day <= 13) {
+      return 'th';
+    }
+    switch (day % 10) {
+      case 1:
+        return 'st';
+      case 2:
+        return 'nd';
+      case 3:
+        return 'rd';
+      default:
+        return 'th';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Inisialisasi data waktu real-time
+    final DateTime now = DateTime.now();
+    final String dayNumber = DateFormat('d').format(now); // Tanggal (1, 2, 3...)
+    final String dayName = DateFormat('EEEE').format(now); // Nama Hari (Tuesday...)
+    final String monthYear = DateFormat('MMMM yyyy').format(now); // Bulan & Tahun
+    final String suffix = _getDaySuffix(now.day); // Suffix (st, nd, rd, th)
+
     return SafeArea(
       child: ListView(
-        padding: const EdgeInsets.symmetric(
-            horizontal: 20), // Hapus padding top/bottom
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         children: [
-          _dateCard(),
+          _dateCard(dayNumber, suffix, dayName, monthYear),
           const SizedBox(height: 20),
           const ScheduleCard(
             subject: "Bahasa indonesia",
@@ -41,7 +65,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _dateCard() {
+  Widget _dateCard(String day, String suffix, String dayName, String monthYear) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(24),
       child: Container(
@@ -101,9 +125,9 @@ class HomePage extends StatelessWidget {
                       RichText(
                         text: TextSpan(
                           children: [
-                            const TextSpan(
-                              text: "22",
-                              style: TextStyle(
+                            TextSpan(
+                              text: day, // Menggunakan data real-time
+                              style: const TextStyle(
                                 fontFamily: "Montserrat",
                                 fontSize: 56,
                                 fontWeight: FontWeight.w700,
@@ -113,9 +137,9 @@ class HomePage extends StatelessWidget {
                             WidgetSpan(
                               child: Transform.translate(
                                 offset: const Offset(0, -25),
-                                child: const Text(
-                                  "th",
-                                  style: TextStyle(
+                                child: Text(
+                                  suffix, // Menggunakan suffix real-time
+                                  style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
                                     color: textDark,
@@ -127,23 +151,23 @@ class HomePage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 14),
-                      const Padding(
-                        padding: EdgeInsets.only(top: 11),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 11),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "Wednesday",
-                              style: TextStyle(
+                              dayName, // Nama hari real-time
+                              style: const TextStyle(
                                 fontSize: 17,
                                 fontWeight: FontWeight.w700,
                                 color: orangeMain,
                               ),
                             ),
-                            SizedBox(height: 4),
+                            const SizedBox(height: 4),
                             Text(
-                              "August 2026",
-                              style: TextStyle(
+                              monthYear, // Bulan dan tahun real-time
+                              style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
                                 color: textGrey,

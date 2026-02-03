@@ -140,30 +140,56 @@ class _NavbarPageState extends State<NavbarPage> {
     );
   }
 
-// ================= QR BUTTON =================
+// ================= QR BUTTON (LARGE & SPACIOUS) =================
   Widget _qrButton() {
-    return FloatingActionButton(
-      elevation: 0,
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-      onPressed: () {
-        // Navigate ke halaman QR Scan
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const QrScanPage()),
-        );
-      },
-      shape: const CircleBorder(),
-      child: Container(
-        width: 64,
-        height: 64,
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          color: orangeMain,
-        ),
-        child: const Icon(
-          Icons.qr_code_scanner_rounded,
-          size: 39,
-          color: Colors.white,
+    return Container(
+      // Container luar sebagai pembatas putih
+      width: 82,
+      height: 82,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white, // Memberikan ring putih di luar lingkaran orange
+      ),
+      child: FloatingActionButton(
+        elevation: 0,
+        backgroundColor:
+            Colors.transparent, // Agar background putih di atas yang terlihat
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const QrScanPage()),
+          );
+        },
+        shape: const CircleBorder(),
+        child: Container(
+          // DISINI PERUBAHANNYA: Ukuran diperbesar secara signifikan
+          width: 70,
+          height: 70,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color.fromARGB(255, 240, 72, 26),
+                Color(0xFFFF8E62), // Warna orange yang sedikit lebih terang
+              ],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: orangeMain.withOpacity(0.4),
+                blurRadius: 15,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          // Gunakan Center agar icon tetap presisi di tengah container besar
+          child: const Icon(
+            Icons.qr_code_scanner_rounded,
+            // Icon tetap di ukuran medium agar terlihat elegan dalam container besar
+            size: 37,
+            color: Colors.white,
+          ),
         ),
       ),
     );
