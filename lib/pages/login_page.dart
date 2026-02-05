@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'navbar_page.dart'; // 🔥 PENTING
+import 'package:quickalert/quickalert.dart'; // 🔥 Import ini
+import 'navbar_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -15,24 +16,39 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController nisnController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  // ================= FUNGSI LOGIN DUMMY =================
+  // ================= FUNGSI LOGIN DENGAN SWEET ALERT =================
   void _login() {
     final nisn = nisnController.text.trim();
     final password = passwordController.text.trim();
 
     if (nisn == '08622113' && password == '123') {
-      // ✅ Berhasil → masuk Navbar
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const NavbarPage()),
+      // ✅ ALERT BERHASIL
+      QuickAlert.show(
+        context: context,
+        type: QuickAlertType.success,
+        title: 'Login Berhasil!',
+        text: 'Selamat datang kembali di Aplikasi Absensi',
+        confirmBtnText: 'Masuk',
+        confirmBtnColor: const Color(0xFFFF6B35),
+        onConfirmBtnTap: () {
+          Navigator.pop(context); // Tutup alert
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const NavbarPage()),
+          );
+        },
       );
     } else {
-      // ❌ Gagal
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('NISN atau Password salah'),
-          backgroundColor: Colors.redAccent,
-        ),
+      // ❌ ALERT GAGAL
+      QuickAlert.show(
+        context: context,
+        type: QuickAlertType.error,
+        title: 'Oops...',
+        text: 'NISN atau Password yang kamu masukkan salah.',
+        confirmBtnText: 'Coba Lagi',
+        confirmBtnColor: const Color(0xFFFF6B35),
+        // Animasi tambahan untuk error
+        animType: QuickAlertAnimType.scale,
       );
     }
   }
@@ -47,7 +63,7 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               children: [
                 // --- AREA LOGO (Header) ---
-                Container(
+                SizedBox(
                   height: 250,
                   width: double.infinity,
                   child: Center(
@@ -58,8 +74,7 @@ class _LoginPageState extends State<LoginPage> {
                         height: 80,
                         fit: BoxFit.contain,
                         errorBuilder: (context, error, stackTrace) =>
-                            const Icon(Icons.school,
-                                size: 60, color: Colors.white),
+                            const Icon(Icons.school, size: 60, color: Colors.white),
                       ),
                     ),
                   ),
@@ -68,8 +83,7 @@ class _LoginPageState extends State<LoginPage> {
                 // --- CONTAINER PUTIH ---
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 30, vertical: 40),
+                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 40),
                   decoration: const BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.only(
@@ -95,8 +109,7 @@ class _LoginPageState extends State<LoginPage> {
                             children: [
                               TextSpan(
                                 text: 'Welcome ',
-                                style:
-                                    TextStyle(color: Color(0xFFFF6B35)),
+                                style: TextStyle(color: Color(0xFFFF6B35)),
                               ),
                               TextSpan(
                                 text: 'Back',
@@ -121,7 +134,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 40),
 
-                      // ================= NISN =================
+                      // Input NISN
                       const Text(
                         'NISN',
                         style: TextStyle(
@@ -133,30 +146,14 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 8),
                       TextFormField(
-                        controller: nisnController, // 🔥 DITAMBAHKAN
+                        controller: nisnController,
                         keyboardType: TextInputType.number,
                         style: const TextStyle(fontFamily: 'Poppins'),
-                        decoration: InputDecoration(
-                          hintText: 'Ketik NISN, Contoh 0820089',
-                          hintStyle: const TextStyle(
-                              color: Colors.grey, fontSize: 14),
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 15),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15),
-                            borderSide: const BorderSide(
-                                color: Color(0xFFFFB399)),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15),
-                            borderSide: const BorderSide(
-                                color: Color(0xFFFF6B35)),
-                          ),
-                        ),
+                        decoration: _inputDecoration('Ketik NISN, Contoh 0820089'),
                       ),
                       const SizedBox(height: 20),
 
-                      // ================= PASSWORD =================
+                      // Input Password
                       const Text(
                         'PASSWORD',
                         style: TextStyle(
@@ -168,13 +165,10 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 8),
                       TextFormField(
-                        controller: passwordController, // 🔥 DITAMBAHKAN
+                        controller: passwordController,
                         obscureText: _obscureText,
                         style: const TextStyle(fontFamily: 'Poppins'),
-                        decoration: InputDecoration(
-                          hintText: 'Ketik Password',
-                          hintStyle: const TextStyle(
-                              color: Colors.grey, fontSize: 14),
+                        decoration: _inputDecoration('Ketik Password').copyWith(
                           suffixIcon: IconButton(
                             icon: Icon(
                               _obscureText
@@ -182,26 +176,13 @@ class _LoginPageState extends State<LoginPage> {
                                   : Icons.visibility_off_outlined,
                               color: Colors.grey,
                             ),
-                            onPressed: () =>
-                                setState(() => _obscureText = !_obscureText),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 15),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15),
-                            borderSide: const BorderSide(
-                                color: Color(0xFFFFB399)),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15),
-                            borderSide: const BorderSide(
-                                color: Color(0xFFFF6B35)),
+                            onPressed: () => setState(() => _obscureText = !_obscureText),
                           ),
                         ),
                       ),
                       const SizedBox(height: 50),
 
-                      // ================= BUTTON LOGIN =================
+                      // Tombol Log In
                       Container(
                         width: double.infinity,
                         height: 55,
@@ -209,22 +190,18 @@ class _LoginPageState extends State<LoginPage> {
                           borderRadius: BorderRadius.circular(30),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFFFF6B35)
-                                  .withOpacity(0.3),
+                              color: const Color(0xFFFF6B35).withOpacity(0.3),
                               spreadRadius: 1,
                               blurRadius: 10,
                               offset: const Offset(0, 5),
                             ),
                           ],
                           gradient: const LinearGradient(
-                            colors: [
-                              Color(0xFFFF6B35),
-                              Color(0xFFFF8E62)
-                            ],
+                            colors: [Color(0xFFFF6B35), Color(0xFFFF8E62)],
                           ),
                         ),
                         child: ElevatedButton(
-                          onPressed: _login, // 🔥 INI KUNCINYA
+                          onPressed: _login,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.transparent,
                             shadowColor: Colors.transparent,
@@ -251,6 +228,23 @@ class _LoginPageState extends State<LoginPage> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  // Refactor decoration agar kode lebih bersih
+  InputDecoration _inputDecoration(String hint) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(15),
+        borderSide: const BorderSide(color: Color(0xFFFFB399)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(15),
+        borderSide: const BorderSide(color: Color(0xFFFF6B35)),
       ),
     );
   }

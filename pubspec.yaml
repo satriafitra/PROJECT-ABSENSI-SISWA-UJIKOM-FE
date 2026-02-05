@@ -15,6 +15,7 @@ dependencies:
 
   # ICON IOS
   cupertino_icons: ^1.0.6
+  quickalert: ^1.1.0
 
 dev_dependencies:
   flutter_test:
