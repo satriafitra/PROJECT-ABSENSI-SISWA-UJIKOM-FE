@@ -25,6 +25,9 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
+  assets:
+    - lib/images/logo-absen.png  # Tambahkan baris ini
+
   # ===== FONT POPPINS LOCAL =====
   fonts:
     - family: Poppins
