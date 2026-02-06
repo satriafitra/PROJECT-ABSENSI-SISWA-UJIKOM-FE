@@ -28,6 +28,7 @@ flutter:
 
   assets:
     - lib/images/logo-absen.png  # Tambahkan baris ini
+    - lib/images/char.png  # Tambahkan baris ini
 
   # ===== FONT POPPINS LOCAL =====
   fonts:

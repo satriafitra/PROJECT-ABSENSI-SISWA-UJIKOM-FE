@@ -1,3 +1,4 @@
+import 'package:absensi_app/pages/riwayat_absensi.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'pages/navbar_page.dart';
@@ -21,7 +22,7 @@ class MyApp extends StatelessWidget {
         fontFamily: 'Poppins',
         scaffoldBackgroundColor: const Color(0xFFF6F6F6),
       ),
-      home: const LoginPage(),
+      home: const NavbarPage(),
     );
   }
 }
