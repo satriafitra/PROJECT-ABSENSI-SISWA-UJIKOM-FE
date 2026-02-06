@@ -3,6 +3,7 @@ import 'home_absensi.dart';
 import 'qr_scanner_page.dart';
 import 'kalender.dart';
 import '../widgets/app_header.dart';
+import '../widgets/app_drawer.dart';
 
 const orangeMain = Color.fromARGB(255, 254, 111, 71);
 const orangeSoft = Color(0xFFFFC09A);
@@ -27,6 +28,8 @@ class _NavbarPageState extends State<NavbarPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      endDrawer: const AppDrawer(), // 🔥 INI YANG KAMU LUPA
+
       // ================= HEADER GLOBAL =================
       body: Column(
         children: [

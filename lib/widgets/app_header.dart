@@ -7,7 +7,6 @@ const orangeSoft = Color(0xFFFFC09A);
 class AppHeader extends StatelessWidget {
   const AppHeader({super.key});
 
-  /// ambil 2 kata pertama dari nama
   String _shortName(String fullName) {
     final parts = fullName.trim().split(' ');
     if (parts.length >= 2) {
@@ -28,40 +27,45 @@ class AppHeader extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            /// NOTIFICATION
             const Icon(Icons.notifications_none, size: 26),
-
-            /// HELLO USER (DINAMIS 🔥)
+            
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(30),
                 color: Colors.white.withOpacity(.9),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  )
+                ],
               ),
               child: Row(
                 children: [
                   const CircleAvatar(
                     radius: 14,
                     backgroundColor: orangeSoft,
-                    child: Icon(
-                      Icons.person,
-                      color: orangeMain,
-                      size: 16,
-                    ),
+                    child: Icon(Icons.person, color: orangeMain, size: 16),
                   ),
                   const SizedBox(width: 8),
                   Text(
                     'Hello $shortName',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w500,
-                    ),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                   ),
                 ],
               ),
             ),
 
-            /// BURGER MENU
-            const Icon(Icons.menu, size: 26),
+            /// Tombol Menu untuk buka Sidebar
+            IconButton(
+              icon: const Icon(Icons.menu_rounded, size: 28, color: Colors.black87),
+              onPressed: () {
+                // Mencari scaffold terdekat dan membuka endDrawer
+                Scaffold.of(context).openEndDrawer();
+              },
+            ),
           ],
         ),
       ),
