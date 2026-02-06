@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
         fontFamily: 'Poppins',
         scaffoldBackgroundColor: const Color(0xFFF6F6F6),
       ),
-      home: const NavbarPage(),
+      home: const LoginPage(),
     );
   }
 }
