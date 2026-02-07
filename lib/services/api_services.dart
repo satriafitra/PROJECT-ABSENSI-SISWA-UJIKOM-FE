@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String baseUrl = 'https://6c29-202-46-68-134.ngrok-free.app/api';
+  static const String baseUrl = 'https://519d-202-46-68-134.ngrok-free.app/api';
   // ⚠ ganti IP kalau pakai HP
 
   static Future<Map<String, dynamic>> loginSiswa(

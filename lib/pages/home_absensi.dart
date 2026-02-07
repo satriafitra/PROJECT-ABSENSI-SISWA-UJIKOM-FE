@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Import untuk format tanggal
+import 'package:intl/intl.dart';
 import '../widgets/schedule_card.dart';
 import '../widgets/week_status.dart';
-import '../widgets/curve_clipper.dart';
+import '../widgets/curve_clipper.dart'; // Tetap ada jika diperlukan di file lain
 
 const orangeMain = Color(0xFFFF7A30);
 const orangeSoft = Color(0xFFFFC09A);
@@ -13,11 +13,8 @@ const textDark = Color(0xFF2E2E2E);
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
-  // Fungsi untuk mendapatkan akhiran tanggal (st, nd, rd, th)
   String _getDaySuffix(int day) {
-    if (day >= 11 && day <= 13) {
-      return 'th';
-    }
+    if (day >= 11 && day <= 13) return 'th';
     switch (day % 10) {
       case 1:
         return 'st';
@@ -32,56 +29,159 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Inisialisasi data waktu real-time
     final DateTime now = DateTime.now();
-    final String dayNumber = DateFormat('d').format(now); // Tanggal (1, 2, 3...)
-    final String dayName = DateFormat('EEEE').format(now); // Nama Hari (Tuesday...)
-    final String monthYear = DateFormat('MMMM yyyy').format(now); // Bulan & Tahun
-    final String suffix = _getDaySuffix(now.day); // Suffix (st, nd, rd, th)
+    final String dayNumber = DateFormat('d').format(now);
+    final String dayName = DateFormat('EEEE').format(now);
+    final String monthYear = DateFormat('MMMM yyyy').format(now);
+    final String suffix = _getDaySuffix(now.day);
 
-    return SafeArea(
-      child: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+    return Scaffold(
+      // Menambahkan Scaffold agar background konsisten
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 2, // 👈 kecilkan
+            bottom: 20,
+          ),
+          children: [
+            // 1. Card Tanggal & Week Status
+            _dateCard(dayNumber, suffix, dayName, monthYear),
+
+            const SizedBox(height: 20),
+
+            // 2. Card Input Manual (Izin/Sakit) - POSISI BARU
+            _permissionCard(context),
+
+            const SizedBox(height: 25),
+
+            // Header untuk List View
+            const Text(
+              "Today Schedule",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: textDark,
+              ),
+            ),
+            const SizedBox(height: 15),
+
+            // 3. List View Jadwal
+            const ScheduleCard(
+              subject: "Bahasa indonesia",
+              teacher: "Pak Pajar",
+              time: "09:00 - 10:00 AM",
+            ),
+            const ScheduleCard(
+              subject: "Matematika",
+              teacher: "Ibu Susi",
+              time: "10:00 - 11:00 AM",
+            ),
+            const ScheduleCard(
+              subject: "Agama",
+              teacher: "Ibu Susi",
+              time: "10:00 - 11:00 AM",
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Widget Baru: Permission Card
+  Widget _permissionCard(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [orangeMain.withOpacity(0.1), Colors.white],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: orangeSoft.withOpacity(0.5), width: 1.5),
+      ),
+      child: Row(
         children: [
-          _dateCard(dayNumber, suffix, dayName, monthYear),
-          const SizedBox(height: 20),
-          const ScheduleCard(
-            subject: "Bahasa indonesia",
-            teacher: "Pak Pajar",
-            time: "09:00 - 10:00 AM",
+          // Icon Section
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: orangeMain,
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: const Icon(Icons.edit_calendar_rounded,
+                color: Colors.white, size: 28),
           ),
-          const ScheduleCard(
-            subject: "Matematika",
-            teacher: "Ibu Susi",
-            time: "10:00 - 11:00 AM",
+          const SizedBox(width: 15),
+
+          // Text Section
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Ingin Izin atau Sakit?",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: textDark,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  "Lapor kehadiran manual di sini",
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: textDark.withOpacity(0.6),
+                  ),
+                ),
+              ],
+            ),
           ),
-          const ScheduleCard(
-            subject: "Agama",
-            teacher: "Ibu Susi",
-            time: "10:00 - 11:00 AM",
+
+          // Button Section
+          ElevatedButton(
+            onPressed: () {
+              // Tambahkan navigasi ke form input manual di sini
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: orangeMain,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              elevation: 0,
+            ),
+            child: const Text("Input"),
           ),
         ],
       ),
     );
   }
 
-  Widget _dateCard(String day, String suffix, String dayName, String monthYear) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              blurRadius: 24,
-              offset: const Offset(0, 10),
-              color: Colors.black.withOpacity(.08),
-            ),
-          ],
-        ),
+  Widget _dateCard(
+      String day, String suffix, String dayName, String monthYear) {
+    return Container(
+      // Menghapus ClipRRect dan menggunakan Container decoration untuk shadow lebih halus
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+            color: Colors.black.withOpacity(.05),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
         child: Stack(
           children: [
-            /// BIG SOFT ORANGE CIRCLE
             Positioned(
               right: -60,
               top: -40,
@@ -90,12 +190,10 @@ class HomePage extends StatelessWidget {
                 height: 180,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: orangeSoft.withOpacity(.6),
+                  color: orangeSoft.withOpacity(.4),
                 ),
               ),
             ),
-
-            /// MAIN ORANGE GRADIENT CIRCLE
             Positioned(
               right: -30,
               bottom: -40,
@@ -112,8 +210,6 @@ class HomePage extends StatelessWidget {
                 ),
               ),
             ),
-
-            /// CARD CONTENT
             Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -126,9 +222,8 @@ class HomePage extends StatelessWidget {
                         text: TextSpan(
                           children: [
                             TextSpan(
-                              text: day, // Menggunakan data real-time
+                              text: day,
                               style: const TextStyle(
-                                fontFamily: "Montserrat",
                                 fontSize: 56,
                                 fontWeight: FontWeight.w700,
                                 color: orangeDark,
@@ -138,7 +233,7 @@ class HomePage extends StatelessWidget {
                               child: Transform.translate(
                                 offset: const Offset(0, -25),
                                 child: Text(
-                                  suffix, // Menggunakan suffix real-time
+                                  suffix,
                                   style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -157,7 +252,7 @@ class HomePage extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              dayName, // Nama hari real-time
+                              dayName,
                               style: const TextStyle(
                                 fontSize: 17,
                                 fontWeight: FontWeight.w700,
@@ -166,7 +261,7 @@ class HomePage extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              monthYear, // Bulan dan tahun real-time
+                              monthYear,
                               style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
