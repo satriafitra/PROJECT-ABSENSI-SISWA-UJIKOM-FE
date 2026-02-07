@@ -188,7 +188,7 @@ class _NavbarPageState extends State<NavbarPage> {
           ),
           // Gunakan Center agar icon tetap presisi di tengah container besar
           child: const Icon(
-            Icons.qr_code_scanner_rounded,
+            Icons.qr_code_2_rounded, // Icon yang lebih modern/liquid
             // Icon tetap di ukuran medium agar terlihat elegan dalam container besar
             size: 37,
             color: Colors.white,

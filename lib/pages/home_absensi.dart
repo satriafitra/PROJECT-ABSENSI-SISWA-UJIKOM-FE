@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 import '../widgets/schedule_card.dart';
 import '../widgets/week_status.dart';
 
+
+
 const orangeMain = Color(0xFFFF7A30);
 const orangeSoft = Color(0xFFFFC09A);
 const orangeDark = Color(0xFFFF3B1F);
@@ -196,35 +198,48 @@ class _HomePageState extends State<HomePage> {
     final String suffix = _getDaySuffix(now.day);
 
     return Scaffold(
-      body: SafeArea(
-        child: ListView(
-          padding:
-              const EdgeInsets.only(left: 20, right: 20, top: 1, bottom: 20),
-          children: [
-            _dateCard(dayNumber, suffix, dayName, monthYear),
-            const SizedBox(height: 20),
-            _permissionCard(context),
-            const SizedBox(height: 25),
-            const Text(
-              "Today Schedule",
-              style: TextStyle(
-                  fontSize: 18, fontWeight: FontWeight.bold, color: textDark),
+      extendBodyBehindAppBar: true, // Gunakan ini agar efek blur terlihat
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _dateCard(dayNumber, suffix, dayName, monthYear),
+                  const SizedBox(height: 20),
+                  _permissionCard(context),
+                  const SizedBox(height: 25),
+                  const Text(
+                    "Today Schedule",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: textDark,
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                  const ScheduleCard(
+                    subject: "Bahasa indonesia",
+                    teacher: "Pak Pajar",
+                    time: "09:00 - 10:00 AM",
+                  ),
+                  const ScheduleCard(
+                    subject: "Matematika",
+                    teacher: "Ibu Susi",
+                    time: "10:00 - 11:00 AM",
+                  ),
+                  const ScheduleCard(
+                    subject: "Agama",
+                    teacher: "Ibu Susi",
+                    time: "10:00 - 11:00 AM",
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 15),
-            const ScheduleCard(
-                subject: "Bahasa indonesia",
-                teacher: "Pak Pajar",
-                time: "09:00 - 10:00 AM"),
-            const ScheduleCard(
-                subject: "Matematika",
-                teacher: "Ibu Susi",
-                time: "10:00 - 11:00 AM"),
-            const ScheduleCard(
-                subject: "Agama",
-                teacher: "Ibu Susi",
-                time: "10:00 - 11:00 AM"),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
