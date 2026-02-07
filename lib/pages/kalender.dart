@@ -3,7 +3,9 @@ import 'package:intl/intl.dart';
 import 'riwayat_absensi.dart';
 
 const orangeMain = Color.fromARGB(255, 254, 111, 71);
+const orangeDeep = Color(0xFFE65100);
 const orangeSoft = Color(0xFFFFE0CC);
+const orangeLight = Color(0xFFFFF3E0);
 
 class KalenderPage extends StatefulWidget {
   const KalenderPage({super.key});
@@ -15,20 +17,13 @@ class KalenderPage extends StatefulWidget {
 class _KalenderPageState extends State<KalenderPage> {
   DateTime currentMonth = DateTime.now();
   DateTime? selectedDate;
-
-  // contoh status absensi
-  final Map<String, String> absensi = {
-    '2026-02-01': 'H',
-    '2026-02-02': 'S',
-    '2026-02-03': 'A',
-  };
+  final DateTime today = DateTime.now();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Column(
         children: [
-          /// 🔥 KONTEN BISA SCROLL
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
@@ -36,9 +31,9 @@ class _KalenderPageState extends State<KalenderPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _header(),
-                  const SizedBox(height: 20),
-                  _calendarCard(),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 25),
+                  _calendarCard(), // Fokus utama: Clean & Luxury
+                  const SizedBox(height: 25),
                   _infoCard(),
                 ],
               ),
@@ -49,7 +44,7 @@ class _KalenderPageState extends State<KalenderPage> {
     );
   }
 
-  // ================= HEADER =================
+  // ================= HEADER (Tetap Sama) =================
   Widget _header() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -74,76 +69,107 @@ class _KalenderPageState extends State<KalenderPage> {
     );
   }
 
-  // ================= CALENDAR CARD =================
+  // ================= CALENDAR CARD (LUXURY DESIGN - UPDATED) =================
   Widget _calendarCard() {
-    final daysInMonth =
-        DateUtils.getDaysInMonth(currentMonth.year, currentMonth.month);
+    final daysInMonth = DateUtils.getDaysInMonth(currentMonth.year, currentMonth.month);
     final firstDay = DateTime(currentMonth.year, currentMonth.month, 1).weekday;
 
     return Container(
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 12),
-        ],
-      ),
-      child: Column(
-        children: [
-          _monthSwitcher(),
-          const SizedBox(height: 16), // Jarak ke Day Header
-          _dayHeader(),
-          const SizedBox(height: 12), // 🔥 JARAK DIPERECIL ke Grid Tanggal agar lebih rapat
-          GridView.builder(
-            shrinkWrap: true,
-            padding: EdgeInsets.zero, // Pastikan tidak ada padding tambahan
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: daysInMonth + firstDay - 1,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 7,
-              mainAxisSpacing: 8, // 🔥 JARAK ANTAR BARIS TANGGAL diperapat
-              crossAxisSpacing: 8, // 🔥 JARAK ANTAR KOLOM TANGGAL diperapat
-              childAspectRatio: 1,
-            ),
-            itemBuilder: (context, index) {
-              if (index < firstDay - 1) return const SizedBox();
-
-              final day = index - firstDay + 2;
-              final date = DateTime(currentMonth.year, currentMonth.month, day);
-              final dateKey = DateFormat('yyyy-MM-dd').format(date);
-
-              return _dateItem(
-                day: day,
-                date: date,
-                status: absensi[dateKey],
-              );
-            },
+        borderRadius: BorderRadius.circular(35),
+        boxShadow: [
+          BoxShadow(
+            color: orangeMain.withOpacity(0.08),
+            blurRadius: 40,
+            offset: const Offset(0, 20),
           ),
         ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(35),
+        child: Stack(
+          children: [
+            PositionRectangleDecoration(),
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                children: [
+                  _monthSwitcher(), // Container orange soft panjang dihapus di sini
+                  const SizedBox(height: 25),
+                  _dayHeader(),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 15),
+                    child: Opacity(
+                      opacity: 0.05,
+                      child: Divider(thickness: 1, color: Colors.black),
+                    ),
+                  ),
+                  GridView.builder(
+                    shrinkWrap: true,
+                    padding: EdgeInsets.zero,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: daysInMonth + (firstDay % 7),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 7,
+                      mainAxisSpacing: 10,
+                      crossAxisSpacing: 10,
+                    ),
+                    itemBuilder: (context, index) {
+                      final int offset = firstDay % 7;
+                      if (index < offset) return const SizedBox();
+
+                      final day = index - offset + 1;
+                      final date = DateTime(currentMonth.year, currentMonth.month, day);
+
+                      return _dateItem(day: day, date: date);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  // ================= MONTH SWITCHER =================
+  // ================= MONTH SWITCHER (Clean Floating Style) =================
   Widget _monthSwitcher() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        _iconBtn(Icons.chevron_left, () {
+        _iconBtn(Icons.arrow_back_ios_new_rounded, () {
           setState(() {
             currentMonth = DateTime(currentMonth.year, currentMonth.month - 1);
           });
         }),
-        Text(
-          DateFormat('MMMM yyyy', 'id').format(currentMonth),
-          style: const TextStyle(
-            fontFamily: 'Poppins',
-            fontSize: 20, // Sedikit disesuaikan agar rapi
-            fontWeight: FontWeight.bold,
-          ),
+        // Teks dibuat elegan tanpa background panjang
+        Column(
+          children: [
+            Text(
+              DateFormat('MMMM', 'id').format(currentMonth).toUpperCase(),
+              style: const TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 18,
+                letterSpacing: 1.5,
+                fontWeight: FontWeight.w900,
+                color: Colors.black87, // Hitam elegan
+              ),
+            ),
+            Text(
+              DateFormat('yyyy').format(currentMonth),
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 13,
+                letterSpacing: 3,
+                color: orangeMain.withOpacity(0.6),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
         ),
-        _iconBtn(Icons.chevron_right, () {
+        _iconBtn(Icons.arrow_forward_ios_rounded, () {
           setState(() {
             currentMonth = DateTime(currentMonth.year, currentMonth.month + 1);
           });
@@ -153,99 +179,104 @@ class _KalenderPageState extends State<KalenderPage> {
   }
 
   Widget _iconBtn(IconData icon, VoidCallback onTap) {
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: const BoxDecoration(
-        color: orangeSoft,
-        shape: BoxShape.circle,
-      ),
-      child: IconButton(
-        iconSize: 20,
-        icon: Icon(icon, color: orangeMain),
-        onPressed: onTap,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 42,
+        width: 42,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          border: Border.all(color: orangeSoft.withOpacity(0.5), width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            )
+          ],
+        ),
+        child: Icon(icon, color: orangeMain, size: 16),
       ),
     );
   }
 
   // ================= DAY HEADER =================
   Widget _dayHeader() {
-    const days = ['SEN', 'SEL', 'RAB', 'KAM', 'JUM', 'SAB', 'MIN'];
+    const days = ['MIN', 'SEN', 'SEL', 'RAB', 'KAM', 'JUM', 'SAB'];
     return Row(
-      children: days
-          .map(
-            (e) => Expanded(
-              child: Text(
-                e,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                  color: Colors.black38, // Warna diperhalus agar rapi
-                ),
-              ),
-            ),
-          )
-          .toList(),
+      children: days.map((e) => Expanded(
+        child: Text(
+          e,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.w800,
+            fontSize: 10,
+            color: e == 'MIN' ? Colors.redAccent.withOpacity(0.7) : Colors.black26,
+          ),
+        ),
+      )).toList(),
     );
   }
 
-  // ================= DATE ITEM (BULAT) =================
-  Widget _dateItem({
-    required int day,
-    required DateTime date,
-    String? status,
-  }) {
-    bool isSelected =
-        selectedDate != null && DateUtils.isSameDay(selectedDate, date);
+  // ================= DATE ITEM =================
+  Widget _dateItem({required int day, required DateTime date}) {
+    final bool isToday = DateUtils.isSameDay(date, today);
+    final bool isSelected = selectedDate != null && DateUtils.isSameDay(selectedDate, date);
+    final bool isPastDate = date.isBefore(DateTime(today.year, today.month, today.day));
 
-    Color bgColor = Colors.white;
-    Color textColor = Colors.black;
-    String text = day.toString();
+    BoxDecoration decoration;
+    Color textColor;
 
-    // Logic Warna Berdasarkan Status
-    if (status == 'H') {
-      bgColor = orangeMain;
-      text = 'H';
-      textColor = Colors.white;
-    } else if (status == 'S') {
-      bgColor = Colors.orange;
-      text = 'S';
-      textColor = Colors.white;
-    } else if (status == 'A') {
-      bgColor = Colors.redAccent;
-      text = 'A';
-      textColor = Colors.white;
-    }
-
-    // Override jika tanggal dipilih manual
     if (isSelected) {
-      bgColor = orangeMain;
+      decoration = BoxDecoration(
+        borderRadius: BorderRadius.circular(15),
+        gradient: const LinearGradient(
+          colors: [orangeDeep, orangeMain],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: orangeDeep.withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          )
+        ],
+      );
       textColor = Colors.white;
+    } else if (isToday) {
+      decoration = BoxDecoration(
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: orangeMain, width: 2),
+      );
+      textColor = orangeDeep;
+    } else if (isPastDate) {
+      decoration = BoxDecoration(
+        borderRadius: BorderRadius.circular(15),
+        color: const Color(0xFFF8F8F8),
+      );
+      textColor = Colors.black26;
+    } else {
+      decoration = BoxDecoration(
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: const Color(0xFFF1F1F1), width: 1),
+      );
+      textColor = Colors.black87;
     }
 
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          selectedDate = date;
-        });
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: bgColor,
-          border: Border.all(
-            color: isSelected ? orangeMain : Colors.grey.withOpacity(0.1),
-            width: isSelected ? 2 : 1,
-          ),
-        ),
+      onTap: () => setState(() => selectedDate = date),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        decoration: decoration,
         alignment: Alignment.center,
         child: Text(
-          text,
+          day.toString(),
           style: TextStyle(
             fontFamily: 'Poppins',
-            fontWeight: FontWeight.w600,
+            fontWeight: isToday || isSelected ? FontWeight.bold : FontWeight.w600,
             fontSize: 14,
             color: textColor,
           ),
@@ -254,15 +285,15 @@ class _KalenderPageState extends State<KalenderPage> {
     );
   }
 
-  // ================= INFO CARD =================
+  // ================= INFO CARD (Tetap Sama) =================
   Widget _infoCard() {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(22),
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 12),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15),
         ],
       ),
       child: Column(
@@ -272,7 +303,7 @@ class _KalenderPageState extends State<KalenderPage> {
             "Ingin melihat Riwayat Absen atau Kehadiran dan Jadwal ?",
             style: TextStyle(
               fontFamily: 'Poppins',
-              fontSize: 16,
+              fontSize: 15,
               fontWeight: FontWeight.bold,
               color: orangeMain,
             ),
@@ -280,18 +311,18 @@ class _KalenderPageState extends State<KalenderPage> {
           const SizedBox(height: 18),
           Row(
             children: [
-              _actionBtn("Lihat Jadwal", onTap: () {
-                // Navigasi Jadwal
-              }),
+              _actionBtn("Lihat Jadwal", onTap: () {}),
               const SizedBox(width: 12),
-              _actionBtn("Lihat Absen", filled: true, onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const RiwayatAbsensiPage(),
-                  ),
-                );
-              }),
+              _actionBtn(
+                "Lihat Absen",
+                filled: true,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const RiwayatAbsensiPage()),
+                  );
+                },
+              ),
             ],
           )
         ],
@@ -319,6 +350,26 @@ class _KalenderPageState extends State<KalenderPage> {
               fontWeight: FontWeight.w600,
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class PositionRectangleDecoration extends StatelessWidget {
+  const PositionRectangleDecoration({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: -30,
+      right: -30,
+      child: Container(
+        height: 120,
+        width: 120,
+        decoration: BoxDecoration(
+          color: orangeSoft.withOpacity(0.15),
+          shape: BoxShape.circle,
         ),
       ),
     );
