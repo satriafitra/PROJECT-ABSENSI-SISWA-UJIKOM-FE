@@ -6,10 +6,11 @@ import '../pages/login_page.dart';
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
 
-  // Color Palette - Blue Theme
-  static const Color primaryBlue = Color(0xFF1E3A8A); // Deep Navy
-  static const Color accentBlue = Color(0xFF3B82F6);  // Bright Blue
-  static const Color lightBlue = Color(0xFFEFF6FF);   // Background Blue
+  // --- Orange Elegance Palette ---
+  static const Color primaryOrange = Color(0xFFFF6B35); // Warna utama (Strong Orange)
+  static const Color lightOrange = Color(0xFFFFF4F0);   // Background menu aktif
+  static const Color accentOrange = Color(0xFFFF9F67);  // Gradasi soft
+  static const Color darkGrey = Color(0xFF454545);
 
   void _handleLogout(BuildContext context) {
     QuickAlert.show(
@@ -18,7 +19,7 @@ class AppDrawer extends StatelessWidget {
       text: 'Apakah kamu yakin ingin keluar?',
       confirmBtnText: 'Ya, Keluar',
       cancelBtnText: 'Batal',
-      confirmBtnColor: Colors.redAccent,
+      confirmBtnColor: primaryOrange,
       onConfirmBtnTap: () async {
         await Session.logout();
         if (context.mounted) {
@@ -36,50 +37,58 @@ class AppDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Drawer(
       backgroundColor: Colors.white,
+      elevation: 10,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
-          topRight: Radius.circular(20),
-          bottomRight: Radius.circular(20),
+          topRight: Radius.circular(25),
+          bottomRight: Radius.circular(25),
         ),
       ),
       child: Column(
         children: [
-          // Elegant Header
+          // Header dengan Gradasi Orange Modern
           _buildHeader(context),
 
-          const SizedBox(height: 12),
-          
-          // Menu Items
+          const SizedBox(height: 15),
+
+          // Menu Section
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               children: [
                 _buildMenuItem(
-                  icon: Icons.home_rounded,
+                  context,
+                  icon: Icons.dashboard_customize_rounded,
                   title: "Beranda",
+                  isSelected: true, // Menandakan sedang di halaman ini
                   onTap: () => Navigator.pop(context),
-                  isSelected: true, // Highlight item aktif
                 ),
                 _buildMenuItem(
-                  icon: Icons.history_rounded,
-                  title: "Riwayat Absen",
+                  context,
+                  icon: Icons.assignment_turned_in_rounded,
+                  title: "Riwayat Absensi",
                   onTap: () {},
                 ),
                 _buildMenuItem(
-                  icon: Icons.settings_rounded,
+                  context,
+                  icon: Icons.manage_accounts_rounded,
+                  title: "Profil Saya",
+                  onTap: () {},
+                ),
+                _buildMenuItem(
+                  context,
+                  icon: Icons.settings_suggest_rounded,
                   title: "Pengaturan",
-                  onTap: () {},
-                ),
-                _buildMenuItem(
-                  icon: Icons.info_outline_rounded,
-                  title: "Tentang Aplikasi",
                   onTap: () {},
                 ),
               ],
             ),
           ),
 
-          // Logout Button at Bottom
+          // Divider halus sebelum logout
+          Divider(color: Colors.grey.withOpacity(0.1), thickness: 1, indent: 20, endIndent: 20),
+
+          // Logout Button
           _buildLogoutButton(context),
         ],
       ),
@@ -88,94 +97,93 @@ class AppDrawer extends StatelessWidget {
 
   Widget _buildHeader(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.only(top: 60, left: 20, right: 20, bottom: 30),
+      padding: const EdgeInsets.only(top: 60, left: 24, right: 24, bottom: 30),
       width: double.infinity,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [primaryBlue, accentBlue],
+          colors: [primaryOrange, accentOrange],
         ),
         borderRadius: BorderRadius.only(
-          topRight: Radius.circular(20),
+          topRight: Radius.circular(25),
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Profile Picture Ring
           Container(
             padding: const EdgeInsets.all(3),
             decoration: const BoxDecoration(
-              color: Colors.white24,
+              color: Colors.white30,
               shape: BoxShape.circle,
             ),
             child: const CircleAvatar(
               radius: 35,
               backgroundColor: Colors.white,
-              child: Icon(Icons.person, size: 40, color: primaryBlue),
+              child: Icon(Icons.person_rounded, size: 45, color: primaryOrange),
             ),
           ),
           const SizedBox(height: 15),
+          // User Info
           Text(
-            Session.studentName ?? 'Siswa Terpelajar',
+            Session.studentName ?? 'Siswa Aktif',
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 18,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
               letterSpacing: 0.5,
             ),
           ),
-          const SizedBox(height: 4),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              Session.nisn ?? 'NISN: 00000000',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
+          const SizedBox(height: 5),
+          Row(
+            children: [
+              Icon(Icons.badge_outlined, size: 14, color: Colors.white.withOpacity(0.8)),
+              const SizedBox(width: 5),
+              Text(
+                Session.nisn ?? 'NISN Tidak Tersedia',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.8),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w400,
+                ),
               ),
-            ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildMenuItem({
+  Widget _buildMenuItem(
+    BuildContext context, {
     required IconData icon,
     required String title,
     required VoidCallback onTap,
     bool isSelected = false,
   }) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 4),
-      decoration: BoxDecoration(
-        color: isSelected ? lightBlue : Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
-      ),
+      margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         onTap: onTap,
-        dense: true,
-        visualDensity: VisualDensity.compact,
+        selected: isSelected,
+        selectedTileColor: lightOrange,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
         leading: Icon(
           icon,
-          color: isSelected ? primaryBlue : Colors.grey[600],
-          size: 24,
+          color: isSelected ? primaryOrange : Colors.grey[600],
         ),
         title: Text(
           title,
           style: TextStyle(
-            color: isSelected ? primaryBlue : Colors.grey[800],
+            color: isSelected ? primaryOrange : Colors.grey[800],
             fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
             fontSize: 15,
           ),
         ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -183,29 +191,33 @@ class AppDrawer extends StatelessWidget {
   Widget _buildLogoutButton(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(20),
-      child: InkWell(
-        onTap: () => _handleLogout(context),
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          decoration: BoxDecoration(
-            color: Colors.red.withOpacity(0.08),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.red.withOpacity(0.1)),
-          ),
-          child: const Row(
-            children: [
-              Icon(Icons.logout_rounded, color: Colors.redAccent, size: 22),
-              SizedBox(width: 15),
-              Text(
-                "Keluar Akun",
-                style: TextStyle(
-                  color: Colors.redAccent,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _handleLogout(context),
+          borderRadius: BorderRadius.circular(15),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
+              border: Border.all(color: Colors.red.withOpacity(0.2)),
+              color: Colors.red.withOpacity(0.05),
+            ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.power_settings_new_rounded, color: Colors.redAccent, size: 20),
+                SizedBox(width: 10),
+                Text(
+                  "Keluar Aplikasi",
+                  style: TextStyle(
+                    color: Colors.redAccent,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
