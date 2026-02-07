@@ -1,4 +1,15 @@
 import 'package:flutter/material.dart';
+import '../utils/session.dart';
+
+/// Helper untuk nama pendek (contoh: Satria Fitra Alamsyah → Satria Fitra)
+String getShortName(String? fullName) {
+  if (fullName == null || fullName.isEmpty) return '-';
+
+  final parts = fullName.trim().split(' ');
+  if (parts.length == 1) return parts[0];
+
+  return '${parts[0]} ${parts[1]}';
+}
 
 class RiwayatAbsensiPage extends StatelessWidget {
   const RiwayatAbsensiPage({super.key});
@@ -6,7 +17,6 @@ class RiwayatAbsensiPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Menggunakan background abu-abu sangat muda agar card putih lebih kontras
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -33,24 +43,19 @@ class RiwayatAbsensiPage extends StatelessWidget {
         ),
         centerTitle: true,
       ),
-      body: Stack(
-        children: [
-          ListView.builder(
-            padding: const EdgeInsets.fromLTRB(20, 10, 20,
-                120), // Padding bawah lebih besar agar tidak tertutup navbar
-            itemCount: 5,
-            itemBuilder: (context, index) {
-              List<String> statuses = [
-                'HADIR',
-                'HADIR',
-                'SAKIT',
-                'ALPHA',
-                'HADIR'
-              ];
-              return AttendanceItem(status: statuses[index]);
-            },
-          ),
-        ],
+      body: ListView.builder(
+        padding: const EdgeInsets.fromLTRB(20, 10, 20, 120),
+        itemCount: 5,
+        itemBuilder: (context, index) {
+          final statuses = [
+            'HADIR',
+            'HADIR',
+            'SAKIT',
+            'ALPHA',
+            'HADIR'
+          ];
+          return AttendanceItem(status: statuses[index]);
+        },
       ),
     );
   }
@@ -62,10 +67,13 @@ class AttendanceItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final shortName = getShortName(Session.studentName);
+    final kelas = Session.studentClass ?? '-';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Baris Tanggal dengan Icon Jam yang Keren
+        // ===== TANGGAL =====
         Padding(
           padding: const EdgeInsets.only(left: 5, bottom: 10, top: 10),
           child: Row(
@@ -84,6 +92,8 @@ class AttendanceItem extends StatelessWidget {
             ],
           ),
         ),
+
+        // ===== CARD =====
         Container(
           height: 100,
           decoration: BoxDecoration(
@@ -103,7 +113,7 @@ class AttendanceItem extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    // Sisi Kiri: Orange Container (Lekukan Cekung Premium)
+                    // ===== SISI KIRI (ORANGE) =====
                     Container(
                       width: 85,
                       decoration: BoxDecoration(
@@ -118,7 +128,6 @@ class AttendanceItem extends StatelessWidget {
                         borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(25),
                           bottomLeft: Radius.circular(25),
-                          // kanan sengaja tidak diberi radius
                         ),
                         boxShadow: [
                           BoxShadow(
@@ -140,13 +149,6 @@ class AttendanceItem extends StatelessWidget {
                             decoration: const BoxDecoration(
                               color: Colors.white,
                               shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black12,
-                                  blurRadius: 4,
-                                  offset: Offset(0, 2),
-                                ),
-                              ],
                             ),
                             child: const Icon(
                               Icons.check_circle_rounded,
@@ -157,15 +159,18 @@ class AttendanceItem extends StatelessWidget {
                         ),
                       ),
                     ),
-                    SizedBox(width: 15), // Tengah: Informasi Siswa
+
+                    const SizedBox(width: 15),
+
+                    // ===== TENGAH (NAMA & KELAS) =====
                     Expanded(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            "Satria Fitra Alamsyah",
-                            style: TextStyle(
+                          Text(
+                            shortName,
+                            style: const TextStyle(
                               color: Color(0xFFFF4D00),
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
@@ -181,12 +186,13 @@ class AttendanceItem extends StatelessWidget {
                                   color: Colors.grey.shade100,
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: const Text(
-                                  "12 RPL 1",
-                                  style: TextStyle(
-                                      color: Colors.black54,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold),
+                                child: Text(
+                                  kelas,
+                                  style: const TextStyle(
+                                    color: Colors.black54,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -198,20 +204,22 @@ class AttendanceItem extends StatelessWidget {
                     ),
                   ],
                 ),
-                // Sisi Kanan: Image Character (Flipped)
+
+                // ===== CHARACTER IMAGE (TETAP ADA) =====
                 Positioned(
                   right: -10,
                   bottom: -5,
                   child: Transform.scale(
-                    scaleX: -1, // Flip Horizontal
+                    scaleX: -1,
                     child: Image.asset(
                       'lib/images/char.png',
                       height: 95,
                       fit: BoxFit.contain,
                       errorBuilder: (context, error, stackTrace) => Icon(
-                          Icons.person,
-                          size: 80,
-                          color: Colors.grey.shade200),
+                        Icons.person,
+                        size: 80,
+                        color: Colors.grey.shade200,
+                      ),
                     ),
                   ),
                 ),
@@ -219,7 +227,7 @@ class AttendanceItem extends StatelessWidget {
             ),
           ),
         ),
-        // Divider Orange Tipis
+
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
           child: Divider(color: Color(0x33FF7A50), thickness: 1),
@@ -262,7 +270,10 @@ class StatusBadge extends StatelessWidget {
       child: Text(
         status,
         style: TextStyle(
-            color: textColor, fontSize: 10, fontWeight: FontWeight.w900),
+          color: textColor,
+          fontSize: 10,
+          fontWeight: FontWeight.w900,
+        ),
       ),
     );
   }
