@@ -1,5 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+
+import '../services/api_services.dart';
+import '../utils/session.dart';
+import 'riwayat_absensi.dart';
 
 class QrScanPage extends StatefulWidget {
   const QrScanPage({super.key});
@@ -11,8 +16,9 @@ class QrScanPage extends StatefulWidget {
 class _QrScanPageState extends State<QrScanPage>
     with SingleTickerProviderStateMixin {
   String? qrCode;
-  late MobileScannerController cameraController;
+  bool isProcessing = false;
 
+  late MobileScannerController cameraController;
   late AnimationController _animationController;
   late Animation<double> _lineAnimation;
 
@@ -22,7 +28,7 @@ class _QrScanPageState extends State<QrScanPage>
 
     cameraController = MobileScannerController(
       formats: [BarcodeFormat.qrCode],
-      detectionSpeed: DetectionSpeed.normal,
+      detectionSpeed: DetectionSpeed.noDuplicates,
     );
 
     _animationController = AnimationController(
@@ -42,34 +48,79 @@ class _QrScanPageState extends State<QrScanPage>
     super.dispose();
   }
 
+  Future<void> _handleQrScan(String rawValue) async {
+    if (isProcessing) return;
+    isProcessing = true;
+
+    try {
+      final decoded = jsonDecode(rawValue);
+
+      if (!decoded.containsKey('qr_token')) {
+        throw 'QR tidak valid';
+      }
+
+      final response = await ApiService.submitAttendance(
+        studentId: Session.id!,
+        qrToken: decoded['qr_token'],
+      );
+
+      if (response != null && response['status'] == true) {
+        cameraController.stop();
+
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? 'Absensi berhasil'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const RiwayatAbsensiPage(),
+          ),
+        );
+      } else {
+        throw response['message'] ?? 'Gagal melakukan absensi';
+      }
+    } catch (e) {
+      isProcessing = false;
+      qrCode = null; // reset agar bisa scan ulang
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final cutOutSize = size.width * 0.7; // Ukuran kotak scanner
+    final cutOutSize = size.width * 0.7;
     final cutOutTop = (size.height - cutOutSize) / 2;
 
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // 1. Kamera Penuh
+          // ================= CAMERA =================
           MobileScanner(
             controller: cameraController,
             onDetect: (capture) {
-              final List<Barcode> barcodes = capture.barcodes;
-              for (final barcode in barcodes) {
-                if (barcode.rawValue != null) {
-                  setState(() {
-                    qrCode = barcode.rawValue;
-                  });
-                  // Tambahkan feedback getaran atau suara jika perlu
-                  debugPrint('Barcode found! ${barcode.rawValue}');
+              for (final barcode in capture.barcodes) {
+                if (barcode.rawValue != null && qrCode == null) {
+                  setState(() => qrCode = barcode.rawValue);
+                  _handleQrScan(barcode.rawValue!);
                 }
               }
             },
           ),
 
-          // 2. Background Overlay Gelap dengan Lubang (Masking)
+          // ================= MASK =================
           ColorFiltered(
             colorFilter: ColorFilter.mode(
               Colors.black.withOpacity(0.6),
@@ -77,12 +128,7 @@ class _QrScanPageState extends State<QrScanPage>
             ),
             child: Stack(
               children: [
-                Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.black,
-                    backgroundBlendMode: BlendMode.dstOut,
-                  ),
-                ),
+                Container(color: Colors.black),
                 Align(
                   alignment: Alignment.center,
                   child: Container(
@@ -98,7 +144,7 @@ class _QrScanPageState extends State<QrScanPage>
             ),
           ),
 
-          // 3. Scanner Frame (Garis di Pojok-Pojok)
+          // ================= FRAME =================
           Align(
             alignment: Alignment.center,
             child: CustomPaint(
@@ -107,7 +153,7 @@ class _QrScanPageState extends State<QrScanPage>
             ),
           ),
 
-          // 4. Animasi Laser Glow Orange
+          // ================= LASER =================
           Positioned(
             left: (size.width - cutOutSize) / 2,
             top: cutOutTop,
@@ -120,18 +166,6 @@ class _QrScanPageState extends State<QrScanPage>
                     width: cutOutSize,
                     height: 4,
                     decoration: BoxDecoration(
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.orange.withOpacity(0.8),
-                          blurRadius: 15,
-                          spreadRadius: 4,
-                        ),
-                        BoxShadow(
-                          color: Colors.orangeAccent.withOpacity(0.5),
-                          blurRadius: 25,
-                          spreadRadius: 8,
-                        ),
-                      ],
                       gradient: const LinearGradient(
                         colors: [
                           Colors.transparent,
@@ -139,6 +173,13 @@ class _QrScanPageState extends State<QrScanPage>
                           Colors.transparent,
                         ],
                       ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.orange.withOpacity(0.7),
+                          blurRadius: 20,
+                          spreadRadius: 6,
+                        ),
+                      ],
                     ),
                   ),
                 );
@@ -146,7 +187,7 @@ class _QrScanPageState extends State<QrScanPage>
             ),
           ),
 
-          // 5. Tombol Atas (Back & Flash)
+          // ================= HEADER =================
           Positioned(
             top: MediaQuery.of(context).padding.top + 10,
             left: 20,
@@ -154,9 +195,9 @@ class _QrScanPageState extends State<QrScanPage>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _circularButton(
-                  icon: Icons.arrow_back_ios_new_rounded,
-                  onTap: () => Navigator.pop(context),
+                _circleBtn(
+                  Icons.arrow_back_ios_new_rounded,
+                  () => Navigator.pop(context),
                 ),
                 const Text(
                   "Scan QR Code",
@@ -166,15 +207,15 @@ class _QrScanPageState extends State<QrScanPage>
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                _circularButton(
-                  icon: Icons.flashlight_on_rounded,
-                  onTap: () => cameraController.toggleTorch(),
+                _circleBtn(
+                  Icons.flashlight_on_rounded,
+                  () => cameraController.toggleTorch(),
                 ),
               ],
             ),
           ),
 
-          // 6. Label Petunjuk Bawah
+          // ================= FOOTER =================
           Positioned(
             top: cutOutTop + cutOutSize + 40,
             left: 0,
@@ -182,63 +223,15 @@ class _QrScanPageState extends State<QrScanPage>
             child: const Text(
               "Posisikan QR Code di dalam kotak",
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 14,
-                letterSpacing: 0.5,
-              ),
+              style: TextStyle(color: Colors.white70),
             ),
           ),
-
-          // 7. Pop-up Hasil QR (Jika terdeteksi)
-          if (qrCode != null)
-            Positioned(
-              bottom: 50,
-              left: 30,
-              right: 30,
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 4))
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.check_circle, color: Colors.green, size: 40),
-                    const SizedBox(height: 10),
-                    Text(
-                      'QR Terdeteksi!',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      '$qrCode',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.grey[700]),
-                    ),
-                    const SizedBox(height: 15),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange,
-                        shape: StadiumBorder(),
-                      ),
-                      onPressed: () => setState(() => qrCode = null),
-                      child: const Text("Scan Lagi", style: TextStyle(color: Colors.white)),
-                    )
-                  ],
-                ),
-              ),
-            ),
         ],
       ),
     );
   }
 
-  Widget _circularButton({required IconData icon, required VoidCallback onTap}) {
+  Widget _circleBtn(IconData icon, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -248,13 +241,13 @@ class _QrScanPageState extends State<QrScanPage>
           color: Colors.black26,
           border: Border.all(color: Colors.white24),
         ),
-        child: Icon(icon, color: Colors.white, size: 20),
+        child: Icon(icon, color: Colors.white),
       ),
     );
   }
 }
 
-// --- Custom Painter untuk Frame Pojok ---
+// ================= FRAME PAINTER =================
 class ScannerFramePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
@@ -264,28 +257,22 @@ class ScannerFramePainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
+    const len = 30.0;
     final path = Path();
-    double len = 30; // Panjang garis pojok
 
-    // Pojok Kiri Atas
-    path.moveTo(0, len);
-    path.lineTo(0, 0);
-    path.lineTo(len, 0);
-
-    // Pojok Kanan Atas
-    path.moveTo(size.width - len, 0);
-    path.lineTo(size.width, 0);
-    path.lineTo(size.width, len);
-
-    // Pojok Kanan Bawah
-    path.moveTo(size.width, size.height - len);
-    path.lineTo(size.width, size.height);
-    path.lineTo(size.width - len, size.height);
-
-    // Pojok Kiri Bawah
-    path.moveTo(len, size.height);
-    path.lineTo(0, size.height);
-    path.lineTo(0, size.height - len);
+    path
+      ..moveTo(0, len)
+      ..lineTo(0, 0)
+      ..lineTo(len, 0)
+      ..moveTo(size.width - len, 0)
+      ..lineTo(size.width, 0)
+      ..lineTo(size.width, len)
+      ..moveTo(size.width, size.height - len)
+      ..lineTo(size.width, size.height)
+      ..lineTo(size.width - len, size.height)
+      ..moveTo(len, size.height)
+      ..lineTo(0, size.height)
+      ..lineTo(0, size.height - len);
 
     canvas.drawPath(path, paint);
   }

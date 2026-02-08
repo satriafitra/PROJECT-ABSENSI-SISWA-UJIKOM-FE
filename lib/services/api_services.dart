@@ -2,9 +2,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String baseUrl = 'https://519d-202-46-68-134.ngrok-free.app/api';
-  // ⚠ ganti IP kalau pakai HP
+  static const String baseUrl =
+      'https://4257-202-46-68-134.ngrok-free.app/api';
 
+  // ================= LOGIN SISWA =================
   static Future<Map<String, dynamic>> loginSiswa(
       String nisn, String password) async {
     final response = await http.post(
@@ -16,6 +17,26 @@ class ApiService {
       body: jsonEncode({
         'nisn': nisn,
         'password': password,
+      }),
+    );
+
+    return jsonDecode(response.body);
+  }
+
+  // ================= ABSENSI (SCAN QR) =================
+  static Future<Map<String, dynamic>> submitAttendance({
+    required int studentId,
+    required String qrToken,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/absen'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: jsonEncode({
+        'student_id': studentId,
+        'qr_token': qrToken,
       }),
     );
 

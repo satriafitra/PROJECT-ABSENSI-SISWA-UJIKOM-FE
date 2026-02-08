@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../utils/session.dart';
+import '../services/attendance_services.dart';
+import 'package:intl/intl.dart';
+
 
 /// Helper untuk nama pendek (contoh: Satria Fitra Alamsyah → Satria Fitra)
 String getShortName(String? fullName) {
@@ -43,18 +46,34 @@ class RiwayatAbsensiPage extends StatelessWidget {
         ),
         centerTitle: true,
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.fromLTRB(20, 10, 20, 120),
-        itemCount: 5,
-        itemBuilder: (context, index) {
-          final statuses = [
-            'HADIR',
-            'HADIR',
-            'SAKIT',
-            'ALPHA',
-            'HADIR'
-          ];
-          return AttendanceItem(status: statuses[index]);
+      body: FutureBuilder(
+        future: AttendanceService.fetchHistory(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(
+              child: Text(
+                'Belum ada riwayat absensi',
+                style: TextStyle(color: Colors.grey),
+              ),
+            );
+          }
+
+          final data = snapshot.data!;
+
+          return ListView.builder(
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 120),
+            itemCount: data.length,
+            itemBuilder: (context, index) {
+              return AttendanceItem(
+                status: data[index].status,
+                date: data[index].date, // gunakan tanggal dari API
+              );
+            },
+          );
         },
       ),
     );
@@ -63,12 +82,19 @@ class RiwayatAbsensiPage extends StatelessWidget {
 
 class AttendanceItem extends StatelessWidget {
   final String status;
-  const AttendanceItem({super.key, required this.status});
+  final String date; // tambahkan tanggal
+
+  const AttendanceItem({super.key, required this.status, required this.date});
 
   @override
   Widget build(BuildContext context) {
     final shortName = getShortName(Session.studentName);
     final kelas = Session.studentClass ?? '-';
+
+    // Format tanggal (contoh: "Rabu, 12 February 2026")
+    final formattedDate = DateTime.tryParse(date) != null
+        ? DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(DateTime.parse(date))
+        : date;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -82,7 +108,7 @@ class AttendanceItem extends StatelessWidget {
                   size: 16, color: Colors.grey),
               const SizedBox(width: 6),
               Text(
-                "Rabu, 12 February 2026",
+                formattedDate,
                 style: TextStyle(
                   color: Colors.grey.shade600,
                   fontWeight: FontWeight.w700,
@@ -196,7 +222,7 @@ class AttendanceItem extends StatelessWidget {
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              StatusBadge(status: status),
+                              StatusBadge(status: status.toUpperCase()),
                             ],
                           ),
                         ],
