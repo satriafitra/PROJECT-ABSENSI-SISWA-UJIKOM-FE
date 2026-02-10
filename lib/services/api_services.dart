@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   static const String baseUrl =
-      'https://51c7-202-46-68-134.ngrok-free.app/api';
+      'https://e047-202-46-68-134.ngrok-free.app/api';
 
   // ================= LOGIN SISWA =================
   static Future<Map<String, dynamic>> loginSiswa(
@@ -38,6 +38,19 @@ class ApiService {
         'student_id': studentId,
         'qr_token': qrToken,
       }),
+    );
+
+    return jsonDecode(response.body);
+  }
+
+  // ================= RIWAYAT ABSENSI =================
+  static Future<Map<String, dynamic>> fetchAttendanceHistory(
+      int studentId) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/attendance/$studentId'),
+      headers: {
+        'Accept': 'application/json',
+      },
     );
 
     return jsonDecode(response.body);

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../utils/session.dart';
 import '../services/attendance_services.dart';
+import '../models/attendance_model.dart';
+import '../models/guru_model.dart';
+import 'detail_absensi_page.dart';
 import 'package:intl/intl.dart';
-
 
 /// Helper untuk nama pendek (contoh: Satria Fitra Alamsyah → Satria Fitra)
 String getShortName(String? fullName) {
@@ -71,6 +73,7 @@ class RiwayatAbsensiPage extends StatelessWidget {
               return AttendanceItem(
                 status: data[index].status,
                 date: data[index].date, // gunakan tanggal dari API
+                guruName: data[index].guruName ?? '-',
               );
             },
           );
@@ -82,186 +85,182 @@ class RiwayatAbsensiPage extends StatelessWidget {
 
 class AttendanceItem extends StatelessWidget {
   final String status;
-  final String date; // tambahkan tanggal
+  final String date;
+  final String guruName;
 
-  const AttendanceItem({super.key, required this.status, required this.date});
+  const AttendanceItem({
+    super.key,
+    required this.status,
+    required this.date,
+    required this.guruName,
+  });
 
   @override
   Widget build(BuildContext context) {
     final shortName = getShortName(Session.studentName);
     final kelas = Session.studentClass ?? '-';
 
-    // Format tanggal (contoh: "Rabu, 12 February 2026")
     final formattedDate = DateTime.tryParse(date) != null
-        ? DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(DateTime.parse(date))
+        ? DateFormat('EEEE, dd MMMM yyyy', 'id_ID')
+            .format(DateTime.parse(date))
         : date;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // ===== TANGGAL =====
-        Padding(
-          padding: const EdgeInsets.only(left: 5, bottom: 10, top: 10),
-          child: Row(
-            children: [
-              const Icon(Icons.access_time_filled_rounded,
-                  size: 16, color: Colors.grey),
-              const SizedBox(width: 6),
-              Text(
-                formattedDate,
-                style: TextStyle(
-                  color: Colors.grey.shade600,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 13,
-                ),
-              ),
-            ],
+    return InkWell(
+      borderRadius: BorderRadius.circular(25),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => DetailAbsensiPage(
+              date: date,
+              status: status,
+              guruName: guruName,
+            ),
           ),
-        ),
-
-        // ===== CARD =====
-        Container(
-          height: 100,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(25),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.06),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(25),
-            child: Stack(
+        );
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ===== TANGGAL =====
+          Padding(
+            padding: const EdgeInsets.only(left: 5, bottom: 10, top: 10),
+            child: Row(
               children: [
-                Row(
-                  children: [
-                    // ===== SISI KIRI (ORANGE) =====
-                    Container(
-                      width: 85,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [
-                            Color(0xFFFF8A65),
-                            Color(0xFFFF5722),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(25),
-                          bottomLeft: Radius.circular(25),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFFFF5722).withOpacity(0.3),
-                            blurRadius: 12,
-                            offset: const Offset(4, 0),
-                          ),
-                        ],
-                      ),
-                      child: Center(
-                        child: Container(
-                          padding: const EdgeInsets.all(2),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.check_circle_rounded,
-                              color: Color(0xFFFF5722),
-                              size: 34,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(width: 15),
-
-                    // ===== TENGAH (NAMA & KELAS) =====
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            shortName,
-                            style: const TextStyle(
-                              color: Color(0xFFFF4D00),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade100,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  kelas,
-                                  style: const TextStyle(
-                                    color: Colors.black54,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              StatusBadge(status: status.toUpperCase()),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-
-                // ===== CHARACTER IMAGE (TETAP ADA) =====
-                Positioned(
-                  right: -10,
-                  bottom: -5,
-                  child: Transform.scale(
-                    scaleX: -1,
-                    child: Image.asset(
-                      'lib/images/char.png',
-                      height: 95,
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) => Icon(
-                        Icons.person,
-                        size: 80,
-                        color: Colors.grey.shade200,
-                      ),
-                    ),
+                const Icon(Icons.access_time_filled_rounded,
+                    size: 16, color: Colors.grey),
+                const SizedBox(width: 6),
+                Text(
+                  formattedDate,
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
                   ),
                 ),
               ],
             ),
           ),
-        ),
 
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-          child: Divider(color: Color(0x33FF7A50), thickness: 1),
-        ),
-      ],
+          // ===== CARD =====
+          Container(
+            height: 100,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(25),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.06),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(25),
+              child: Stack(
+                children: [
+                  Row(
+                    children: [
+                      // ===== SISI KIRI =====
+                      Container(
+                        width: 85,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [
+                              Color(0xFFFF8A65),
+                              Color(0xFFFF5722),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(25),
+                            bottomLeft: Radius.circular(25),
+                          ),
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.check_circle_rounded,
+                            color: Colors.white,
+                            size: 34,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(width: 15),
+
+                      // ===== TENGAH =====
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              shortName,
+                              style: const TextStyle(
+                                color: Color(0xFFFF4D00),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade100,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    kelas,
+                                    style: const TextStyle(
+                                      color: Colors.black54,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                StatusBadge(status: status.toUpperCase()),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // ===== IMAGE =====
+                  Positioned(
+                    right: -10,
+                    bottom: -5,
+                    child: Transform.scale(
+                      scaleX: -1,
+                      child: Image.asset(
+                        'lib/images/char.png',
+                        height: 95,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+            child: Divider(color: Color(0x33FF7A50), thickness: 1),
+          ),
+        ],
+      ),
     );
   }
 }
+
 
 class StatusBadge extends StatelessWidget {
   final String status;
