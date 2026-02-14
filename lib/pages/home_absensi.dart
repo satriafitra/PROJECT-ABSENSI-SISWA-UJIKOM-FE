@@ -3,8 +3,6 @@ import 'package:intl/intl.dart';
 import '../widgets/schedule_card.dart';
 import '../widgets/week_status.dart';
 
-
-
 const orangeMain = Color(0xFFFF7A30);
 const orangeSoft = Color(0xFFFFC09A);
 const orangeDark = Color(0xFFFF3B1F);

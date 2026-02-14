@@ -3,6 +3,7 @@ import 'package:quickalert/quickalert.dart';
 import 'navbar_page.dart';
 import '../services/api_services.dart';
 import '../utils/session.dart';
+import '../widgets/alert.dart'; // IMPORT COOLALERT MILIKMU
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -15,22 +16,19 @@ class _LoginPageState extends State<LoginPage> {
   bool _obscureText = true;
   bool _loading = false;
 
-  // ================= CONTROLLER =================
   final TextEditingController nisnController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  // ================= LOGIN REAL API =================
   void _login() async {
     final nisn = nisnController.text.trim();
     final password = passwordController.text.trim();
 
     if (nisn.isEmpty || password.isEmpty) {
-      QuickAlert.show(
+      CoolAlert.show(
         context: context,
-        type: QuickAlertType.warning,
+        isSuccess: false,
         title: 'Oops',
-        text: 'NISN dan Password wajib diisi',
-        confirmBtnColor: const Color(0xFFFF6B35),
+        message: 'NISN dan Password wajib diisi ya!',
       );
       return;
     }
@@ -43,15 +41,16 @@ class _LoginPageState extends State<LoginPage> {
       if (response['status'] == 'success') {
         await Session.saveLogin(response['data']);
 
-        QuickAlert.show(
+        if (!mounted) return;
+
+        // Panggil CoolAlert dengan parameter onConfirm
+        CoolAlert.show(
           context: context,
-          type: QuickAlertType.success,
+          isSuccess: true,
           title: 'Login Berhasil!',
-          text: 'Selamat datang ${response['data']['name']}',
-          confirmBtnText: 'Masuk',
-          confirmBtnColor: const Color(0xFFFF6B35),
-          onConfirmBtnTap: () {
-            Navigator.pop(context);
+          message: 'Selamat datang kembali, ${response['data']['name']}',
+          onConfirm: () {
+            // Navigasi dilakukan di sini (setelah tombol diklik)
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (_) => const NavbarPage()),
@@ -59,24 +58,25 @@ class _LoginPageState extends State<LoginPage> {
           },
         );
       } else {
-        QuickAlert.show(
+        if (!mounted) return;
+        CoolAlert.show(
           context: context,
-          type: QuickAlertType.error,
+          isSuccess: false,
           title: 'Gagal Login',
-          text: response['message'] ?? 'Login gagal',
-          confirmBtnColor: const Color(0xFFFF6B35),
+          message:
+              response['message'] ?? 'Periksa kembali NISN dan Password kamu.',
         );
       }
     } catch (e) {
-      QuickAlert.show(
+      if (!mounted) return;
+      CoolAlert.show(
         context: context,
-        type: QuickAlertType.error,
+        isSuccess: false,
         title: 'Error',
-        text: 'Tidak dapat terhubung ke server',
-        confirmBtnColor: const Color(0xFFFF6B35),
+        message: 'Tidak dapat terhubung ke server. Pastikan internetmu aktif.',
       );
     } finally {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 
@@ -101,7 +101,8 @@ class _LoginPageState extends State<LoginPage> {
                         height: 80,
                         fit: BoxFit.contain,
                         errorBuilder: (context, error, stackTrace) =>
-                            const Icon(Icons.school, size: 60, color: Colors.white),
+                            const Icon(Icons.school,
+                                size: 60, color: Colors.white),
                       ),
                     ),
                   ),
@@ -110,7 +111,8 @@ class _LoginPageState extends State<LoginPage> {
                 // --- CONTAINER PUTIH ---
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 40),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 30, vertical: 40),
                   decoration: const BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.only(
@@ -223,7 +225,8 @@ class _LoginPageState extends State<LoginPage> {
                             shadowColor: Colors.transparent,
                           ),
                           child: _loading
-                              ? const CircularProgressIndicator(color: Colors.white)
+                              ? const CircularProgressIndicator(
+                                  color: Colors.white)
                               : const Text(
                                   'Log In',
                                   style: TextStyle(
