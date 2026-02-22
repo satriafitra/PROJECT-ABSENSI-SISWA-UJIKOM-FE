@@ -38,19 +38,21 @@ class _LoginPageState extends State<LoginPage> {
     try {
       final response = await ApiService.loginSiswa(nisn, password);
 
+      // ... di dalam method _login, bagian response success
       if (response['status'] == 'success') {
         await Session.saveLogin(response['data']);
-
         if (!mounted) return;
 
-        // Panggil CoolAlert dengan parameter onConfirm
+        final String namaSiswa = response['data']['name'] ?? 'Siswa';
+        final String kelasSiswa = response['data']['class'] ?? '-';
+
         CoolAlert.show(
           context: context,
           isSuccess: true,
-          title: 'Login Berhasil!',
-          message: 'Selamat datang kembali, ${response['data']['name']}',
+          title: 'LOGIN BERHASIL',
+          // Kita buat pesan yang clean
+          message: ' $namaSiswa\nUnit Kelas: $kelasSiswa',
           onConfirm: () {
-            // Navigasi dilakukan di sini (setelah tombol diklik)
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (_) => const NavbarPage()),

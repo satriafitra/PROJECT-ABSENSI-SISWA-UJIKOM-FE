@@ -2,22 +2,58 @@ import 'package:flutter/material.dart';
 import '../utils/session.dart';
 import '../services/attendance_services.dart';
 import '../models/attendance_model.dart';
-import '../models/guru_model.dart';
 import 'detail_absensi_page.dart';
 import 'package:intl/intl.dart';
 
-/// Helper untuk nama pendek (contoh: Satria Fitra Alamsyah → Satria Fitra)
+/// Helper untuk nama pendek
 String getShortName(String? fullName) {
   if (fullName == null || fullName.isEmpty) return '-';
-
   final parts = fullName.trim().split(' ');
   if (parts.length == 1) return parts[0];
-
   return '${parts[0]} ${parts[1]}';
 }
 
-class RiwayatAbsensiPage extends StatelessWidget {
+class RiwayatAbsensiPage extends StatefulWidget {
   const RiwayatAbsensiPage({super.key});
+
+  @override
+  State<RiwayatAbsensiPage> createState() => _RiwayatAbsensiPageState();
+}
+
+class _RiwayatAbsensiPageState extends State<RiwayatAbsensiPage> {
+  String selectedFilter = "Semua"; // Default filter
+  final List<String> filters = ["Semua", "Minggu Ini", "Bulan Lalu"];
+
+  // Fungsi Logika Filter
+  List<AttendanceModel> filterData(List<AttendanceModel> data) {
+    DateTime now = DateTime.now();
+    
+    if (selectedFilter == "Minggu Ini") {
+      // Cari awal minggu (Senin)
+      DateTime startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+      startOfWeek = DateTime(startOfWeek.year, startOfWeek.month, startOfWeek.day);
+      
+      return data.where((item) {
+        DateTime? itemDate = DateTime.tryParse(item.date);
+        return itemDate != null && itemDate.isAfter(startOfWeek.subtract(const Duration(seconds: 1)));
+      }).toList();
+    } 
+    
+    else if (selectedFilter == "Bulan Lalu") {
+      // Cari awal dan akhir bulan lalu
+      DateTime firstDayLastMonth = DateTime(now.year, now.month - 1, 1);
+      DateTime lastDayLastMonth = DateTime(now.year, now.month, 0, 23, 59, 59);
+      
+      return data.where((item) {
+        DateTime? itemDate = DateTime.tryParse(item.date);
+        return itemDate != null && 
+               itemDate.isAfter(firstDayLastMonth.subtract(const Duration(seconds: 1))) && 
+               itemDate.isBefore(lastDayLastMonth.add(const Duration(seconds: 1)));
+      }).toList();
+    }
+    
+    return data; // "Semua"
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,36 +84,112 @@ class RiwayatAbsensiPage extends StatelessWidget {
         ),
         centerTitle: true,
       ),
-      body: FutureBuilder(
-        future: AttendanceService.fetchHistory(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: Column(
+        children: [
+          // ===== UI FILTER SECTION =====
+          Container(
+            height: 60,
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              itemCount: filters.length,
+              itemBuilder: (context, index) {
+                bool isSelected = selectedFilter == filters[index];
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      selectedFilter = filters[index];
+                    });
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.only(right: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    decoration: BoxDecoration(
+                      color: isSelected ? const Color(0xFFFF5722) : Colors.white,
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: isSelected
+                          ? [
+                              BoxShadow(
+                                color: const Color(0xFFFF5722).withOpacity(0.3),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              )
+                            ]
+                          : [],
+                      border: Border.all(
+                        color: isSelected ? Colors.transparent : Colors.grey.shade300,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          index == 0 ? Icons.apps : index == 1 ? Icons.date_range : Icons.history,
+                          size: 16,
+                          color: isSelected ? Colors.white : Colors.grey,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          filters[index],
+                          style: TextStyle(
+                            color: isSelected ? Colors.white : Colors.grey.shade700,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
 
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(
-              child: Text(
-                'Belum ada riwayat absensi',
-                style: TextStyle(color: Colors.grey),
-              ),
-            );
-          }
+          // ===== LIST DATA SECTION =====
+          Expanded(
+            child: FutureBuilder<List<AttendanceModel>>(
+              future: AttendanceService.fetchHistory(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator(color: Color(0xFFFF5722)));
+                }
 
-          final data = snapshot.data!;
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(
+                    child: Text(
+                      'Belum ada riwayat absensi',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  );
+                }
 
-          return ListView.builder(
-            padding: const EdgeInsets.fromLTRB(20, 10, 20, 120),
-            itemCount: data.length,
-            itemBuilder: (context, index) {
-              return AttendanceItem(
-                status: data[index].status,
-                date: data[index].date, // gunakan tanggal dari API
-                guruName: data[index].guruName ?? '-',
-              );
-            },
-          );
-        },
+                // Terapkan fungsi filter
+                final filteredList = filterData(snapshot.data!);
+
+                if (filteredList.isEmpty) {
+                  return const Center(
+                    child: Text(
+                      'Tidak ada data untuk filter ini',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 120),
+                  itemCount: filteredList.length,
+                  itemBuilder: (context, index) {
+                    return AttendanceItem(
+                      status: filteredList[index].status,
+                      date: filteredList[index].date,
+                      guruName: filteredList[index].guruName ?? '-',
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -122,7 +234,6 @@ class AttendanceItem extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ===== TANGGAL =====
           Padding(
             padding: const EdgeInsets.only(left: 5, bottom: 10, top: 10),
             child: Row(
@@ -141,8 +252,6 @@ class AttendanceItem extends StatelessWidget {
               ],
             ),
           ),
-
-          // ===== CARD =====
           Container(
             height: 100,
             decoration: BoxDecoration(
@@ -162,15 +271,11 @@ class AttendanceItem extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      // ===== SISI KIRI =====
                       Container(
                         width: 85,
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [
-                              Color(0xFFFF8A65),
-                              Color(0xFFFF5722),
-                            ],
+                            colors: [Color(0xFFFF8A65), Color(0xFFFF5722)],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
@@ -187,10 +292,7 @@ class AttendanceItem extends StatelessWidget {
                           ),
                         ),
                       ),
-
                       const SizedBox(width: 15),
-
-                      // ===== TENGAH =====
                       Expanded(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -232,8 +334,6 @@ class AttendanceItem extends StatelessWidget {
                       ),
                     ],
                   ),
-
-                  // ===== IMAGE =====
                   Positioned(
                     right: -10,
                     bottom: -5,
@@ -243,6 +343,7 @@ class AttendanceItem extends StatelessWidget {
                         'lib/images/char.png',
                         height: 95,
                         fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) => const SizedBox(), 
                       ),
                     ),
                   ),
@@ -250,7 +351,6 @@ class AttendanceItem extends StatelessWidget {
               ),
             ),
           ),
-
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
             child: Divider(color: Color(0x33FF7A50), thickness: 1),
@@ -260,7 +360,6 @@ class AttendanceItem extends StatelessWidget {
     );
   }
 }
-
 
 class StatusBadge extends StatelessWidget {
   final String status;

@@ -7,9 +7,10 @@ class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
 
   // --- Orange Elegance Palette ---
-  static const Color primaryOrange = Color(0xFFFF6B35); // Warna utama (Strong Orange)
-  static const Color lightOrange = Color(0xFFFFF4F0);   // Background menu aktif
-  static const Color accentOrange = Color(0xFFFF9F67);  // Gradasi soft
+  static const Color primaryOrange =
+      Color(0xFFFF6B35); // Warna utama (Strong Orange)
+  static const Color lightOrange = Color(0xFFFFF4F0); // Background menu aktif
+  static const Color accentOrange = Color(0xFFFF9F67); // Gradasi soft
   static const Color darkGrey = Color(0xFF454545);
 
   void _handleLogout(BuildContext context) {
@@ -71,9 +72,12 @@ class AppDrawer extends StatelessWidget {
                 ),
                 _buildMenuItem(
                   context,
-                  icon: Icons.manage_accounts_rounded,
-                  title: "Profil Saya",
-                  onTap: () {},
+                  // Menggunakan Icons.explore_rounded untuk kesan yang lebih modern dan dinamis
+                  icon: Icons.location_on_rounded,
+                  title: "Area Absensi",
+                  onTap: () {
+                    // Navigasi ke halaman map absensi di sini
+                  },
                 ),
                 _buildMenuItem(
                   context,
@@ -86,7 +90,11 @@ class AppDrawer extends StatelessWidget {
           ),
 
           // Divider halus sebelum logout
-          Divider(color: Colors.grey.withOpacity(0.1), thickness: 1, indent: 20, endIndent: 20),
+          Divider(
+              color: Colors.grey.withOpacity(0.1),
+              thickness: 1,
+              indent: 20,
+              endIndent: 20),
 
           // Logout Button
           _buildLogoutButton(context),
@@ -139,7 +147,8 @@ class AppDrawer extends StatelessWidget {
           const SizedBox(height: 5),
           Row(
             children: [
-              Icon(Icons.badge_outlined, size: 14, color: Colors.white.withOpacity(0.8)),
+              Icon(Icons.badge_outlined,
+                  size: 14, color: Colors.white.withOpacity(0.8)),
               const SizedBox(width: 5),
               Text(
                 Session.nisn ?? 'NISN Tidak Tersedia',
@@ -206,7 +215,8 @@ class AppDrawer extends StatelessWidget {
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.power_settings_new_rounded, color: Colors.redAccent, size: 20),
+                Icon(Icons.power_settings_new_rounded,
+                    color: Colors.redAccent, size: 20),
                 SizedBox(width: 10),
                 Text(
                   "Keluar Aplikasi",
