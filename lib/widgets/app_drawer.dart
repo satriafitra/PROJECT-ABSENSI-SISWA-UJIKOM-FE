@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:quickalert/quickalert.dart';
 import '../utils/session.dart';
 import '../pages/login_page.dart';
+import '../pages/area_gps.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -72,11 +73,14 @@ class AppDrawer extends StatelessWidget {
                 ),
                 _buildMenuItem(
                   context,
-                  // Menggunakan Icons.explore_rounded untuk kesan yang lebih modern dan dinamis
-                  icon: Icons.location_on_rounded,
+                  icon: Icons.location_on_rounded, // Icon GPS Modern
                   title: "Area Absensi",
                   onTap: () {
-                    // Navigasi ke halaman map absensi di sini
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const AreaGpsPage()),
+                    );
                   },
                 ),
                 _buildMenuItem(
