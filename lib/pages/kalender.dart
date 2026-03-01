@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../services/attendance_services.dart';
 import '../models/attendance_model.dart';
+import '../pages/jadwal_mapel.dart';
 import 'riwayat_absensi.dart';
 
 const orangeMain = Color.fromARGB(255, 254, 111, 71);
@@ -72,7 +73,7 @@ class _KalenderPageState extends State<KalenderPage> {
                           child: CircularProgressIndicator(color: orangeMain))
                       : _calendarCard(),
                   const SizedBox(height: 25),
-                  _infoCard(),
+                  _infoCard(), // Container dengan Outline Orange
                   const SizedBox(height: 20),
                   _legendCard(),
                   const SizedBox(height: 30),
@@ -246,7 +247,7 @@ class _KalenderPageState extends State<KalenderPage> {
                     fontFamily: 'Poppins',
                     fontWeight: FontWeight.w800,
                     fontSize: 10,
-                    color: e == 'MIN'
+                    color: e == 'MIN' || e == 'SAB'
                         ? Colors.redAccent.withOpacity(0.7)
                         : Colors.black26,
                   ),
@@ -282,7 +283,6 @@ class _KalenderPageState extends State<KalenderPage> {
       );
       textColor = Colors.white;
     } else if (hasAttended) {
-      // Fokus hanya pada Border dan Background halus tanpa titik bawah
       decoration = BoxDecoration(
         borderRadius: BorderRadius.circular(15),
         color: statusColor.withOpacity(0.08),
@@ -379,9 +379,10 @@ class _KalenderPageState extends State<KalenderPage> {
               ),
             ],
           ),
-          // Menggunakan GridView agar tampilan lebih simetris dan rapi (mewah)
+          const SizedBox(height: 20),
           GridView(
             shrinkWrap: true,
+            padding: EdgeInsets.zero,
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
@@ -444,14 +445,24 @@ class _KalenderPageState extends State<KalenderPage> {
     );
   }
 
+  // --- BAGIAN YANG DI PERBARUI (INFO CARD DENGAN OUTLINE ORANGE) ---
   Widget _infoCard() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(30),
+        // Memberikan outline orange yang elegan
+        border: Border.all(
+          color: orangeMain.withOpacity(0.4), 
+          width: 1.5,
+        ),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 20),
+          BoxShadow(
+            color: orangeMain.withOpacity(0.05), 
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
         ],
       ),
       child: Column(
@@ -462,18 +473,25 @@ class _KalenderPageState extends State<KalenderPage> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                    color: orangeSoft.withOpacity(0.4), shape: BoxShape.circle),
-                child: const Icon(Icons.info_outline_rounded,
-                    color: orangeMain, size: 20),
+                  color: orangeSoft.withOpacity(0.4),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.info_outline_rounded,
+                  color: orangeMain,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 12),
               const Expanded(
                 child: Text(
                   "Aktivitas & Riwayat",
                   style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold),
+                    fontFamily: 'Poppins',
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2D3142),
+                  ),
                 ),
               ),
             ],
@@ -482,12 +500,26 @@ class _KalenderPageState extends State<KalenderPage> {
           const Text(
             "Gunakan tombol di bawah untuk melihat rincian kehadiran atau jadwal pelajaran kamu.",
             style: TextStyle(
-                fontFamily: 'Poppins', color: Colors.black54, fontSize: 13),
+              fontFamily: 'Poppins',
+              color: Colors.black54,
+              fontSize: 13,
+              height: 1.5,
+            ),
           ),
           const SizedBox(height: 20),
           Row(
             children: [
-              _actionBtn("Jadwal", onTap: () {}),
+              _actionBtn(
+                "Jadwal",
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const JadwalMapelPage(),
+                    ),
+                  );
+                },
+              ),
               const SizedBox(width: 12),
               _actionBtn(
                 "Riwayat",
@@ -496,7 +528,8 @@ class _KalenderPageState extends State<KalenderPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const RiwayatAbsensiPage()),
+                      builder: (context) => const RiwayatAbsensiPage(),
+                    ),
                   ).then((_) => _loadAttendanceHistory());
                 },
               ),
@@ -507,17 +540,23 @@ class _KalenderPageState extends State<KalenderPage> {
     );
   }
 
-  Widget _actionBtn(String text,
-      {bool filled = false, required VoidCallback onTap}) {
+  Widget _actionBtn(String text, {bool filled = false, required VoidCallback onTap}) {
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 14),
           decoration: BoxDecoration(
-            color: filled ? orangeMain : Colors.transparent,
+            color: filled ? orangeMain : Colors.white,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: orangeMain),
+            border: Border.all(color: orangeMain, width: 1.5),
+            boxShadow: filled ? [
+              BoxShadow(
+                color: orangeMain.withOpacity(0.2),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              )
+            ] : null,
           ),
           alignment: Alignment.center,
           child: Text(
