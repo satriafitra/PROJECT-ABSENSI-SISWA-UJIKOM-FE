@@ -73,6 +73,9 @@ class _KalenderPageState extends State<KalenderPage> {
                       : _calendarCard(),
                   const SizedBox(height: 25),
                   _infoCard(),
+                  const SizedBox(height: 20),
+                  _legendCard(),
+                  const SizedBox(height: 30),
                 ],
               ),
             ),
@@ -150,8 +153,8 @@ class _KalenderPageState extends State<KalenderPage> {
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 7,
-                      mainAxisSpacing: 12,
-                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 10,
+                      crossAxisSpacing: 10,
                     ),
                     itemBuilder: (context, index) {
                       final int offset = firstDay % 7;
@@ -265,7 +268,6 @@ class _KalenderPageState extends State<KalenderPage> {
 
     Color statusColor = _getStatusColor(status);
 
-    // Logika Dekorasi Outline dan Fill
     BoxDecoration decoration;
     Color textColor = Colors.black87;
 
@@ -277,31 +279,20 @@ class _KalenderPageState extends State<KalenderPage> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: orangeMain.withOpacity(0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          )
-        ],
       );
       textColor = Colors.white;
     } else if (hasAttended) {
-      // Tampilan Outline untuk yang SUDAH ABSEN
+      // Fokus hanya pada Border dan Background halus tanpa titik bawah
       decoration = BoxDecoration(
         borderRadius: BorderRadius.circular(15),
-        color: statusColor.withOpacity(0.08), // Background super halus
-        border: Border.all(
-            color: statusColor, width: 2), // Outline tegas sesuai status
+        color: statusColor.withOpacity(0.08),
+        border: Border.all(color: statusColor, width: 2),
       );
-      textColor = statusColor; // Text mengikuti warna status agar harmoni
+      textColor = statusColor;
     } else if (isToday) {
       decoration = BoxDecoration(
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(
-            color: orangeMain.withOpacity(0.4),
-            width: 1,
-            style: BorderStyle.solid),
+        border: Border.all(color: orangeMain, width: 1),
       );
       textColor = orangeDeep;
     } else {
@@ -315,35 +306,17 @@ class _KalenderPageState extends State<KalenderPage> {
       onTap: () => setState(() => selectedDate = date),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
         decoration: decoration,
         alignment: Alignment.center,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              day.toString(),
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                fontWeight: isSelected || hasAttended
-                    ? FontWeight.bold
-                    : FontWeight.w500,
-                fontSize: 14,
-                color: textColor,
-              ),
-            ),
-            // Indikator Titik Kecil di bawah angka jika absen
-            if (hasAttended && !isSelected)
-              Container(
-                margin: const EdgeInsets.only(
-                    top: 2), // Perbaikan di sini                height: 4,
-                width: 4,
-                decoration: BoxDecoration(
-                  color: statusColor,
-                  shape: BoxShape.circle,
-                ),
-              ),
-          ],
+        child: Text(
+          day.toString(),
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontWeight:
+                isSelected || hasAttended ? FontWeight.bold : FontWeight.w500,
+            fontSize: 14,
+            color: textColor,
+          ),
         ),
       ),
     );
@@ -352,14 +325,123 @@ class _KalenderPageState extends State<KalenderPage> {
   Color _getStatusColor(String? status) {
     switch (status) {
       case 'HADIR':
-        return const Color(0xFF4CAF50); // Hijau Sukses
+        return const Color(0xFF4CAF50);
       case 'SAKIT':
-        return const Color(0xFFFF9800); // Oranye
+        return const Color(0xFF2196F3);
       case 'IZIN':
-        return const Color(0xFF2196F3); // Biru
+        return const Color(0xFFFFC107);
+      case 'ALFA':
+        return const Color(0xFFF44336);
       default:
         return Colors.grey;
     }
+  }
+
+  Widget _legendCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: Colors.black.withOpacity(0.03)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 25,
+            offset: const Offset(0, 15),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 4,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: orangeMain,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                "Keterangan Status",
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                  color: Color(0xFF2D3142),
+                ),
+              ),
+            ],
+          ),
+          // Menggunakan GridView agar tampilan lebih simetris dan rapi (mewah)
+          GridView(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisExtent: 65,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+            ),
+            children: [
+              _legendItem(
+                  "Hadir", const Color(0xFF4CAF50), Icons.check_circle_rounded),
+              _legendItem("Sakit", const Color(0xFF2196F3),
+                  Icons.local_hospital_rounded),
+              _legendItem("Izin", const Color(0xFFFFC107), Icons.mail_rounded),
+              _legendItem(
+                  "Alfa", const Color(0xFFF44336), Icons.cancel_rounded),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _legendItem(String label, Color color, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: color.withOpacity(0.15), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.06),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            label,
+            style: const TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF4F5D75),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _infoCard() {
@@ -380,9 +462,7 @@ class _KalenderPageState extends State<KalenderPage> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: orangeSoft.withOpacity(0.4),
-                  shape: BoxShape.circle,
-                ),
+                    color: orangeSoft.withOpacity(0.4), shape: BoxShape.circle),
                 child: const Icon(Icons.info_outline_rounded,
                     color: orangeMain, size: 20),
               ),
@@ -391,10 +471,9 @@ class _KalenderPageState extends State<KalenderPage> {
                 child: Text(
                   "Aktivitas & Riwayat",
                   style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                      fontFamily: 'Poppins',
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold),
                 ),
               ),
             ],
