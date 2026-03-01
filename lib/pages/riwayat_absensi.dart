@@ -22,13 +22,27 @@ class RiwayatAbsensiPage extends StatefulWidget {
 
 class _RiwayatAbsensiPageState extends State<RiwayatAbsensiPage> {
   String selectedFilter = "Semua"; // Default filter
-  final List<String> filters = ["Semua", "Minggu Ini", "Bulan Lalu"];
+  // Tambahkan "Hari Ini" di daftar filter
+  final List<String> filters = ["Semua", "Hari Ini", "Minggu Ini", "Bulan Lalu"];
 
   // Fungsi Logika Filter
   List<AttendanceModel> filterData(List<AttendanceModel> data) {
     DateTime now = DateTime.now();
+    // Normalize today untuk perbandingan (jam 00:00:00)
+    DateTime today = DateTime(now.year, now.month, now.day);
+
+    if (selectedFilter == "Hari Ini") {
+      return data.where((item) {
+        DateTime? itemDate = DateTime.tryParse(item.date);
+        if (itemDate == null) return false;
+        // Cek apakah tahun, bulan, dan hari sama
+        return itemDate.year == today.year &&
+               itemDate.month == today.month &&
+               itemDate.day == today.day;
+      }).toList();
+    } 
     
-    if (selectedFilter == "Minggu Ini") {
+    else if (selectedFilter == "Minggu Ini") {
       // Cari awal minggu (Senin)
       DateTime startOfWeek = now.subtract(Duration(days: now.weekday - 1));
       startOfWeek = DateTime(startOfWeek.year, startOfWeek.month, startOfWeek.day);
@@ -96,6 +110,16 @@ class _RiwayatAbsensiPageState extends State<RiwayatAbsensiPage> {
               itemCount: filters.length,
               itemBuilder: (context, index) {
                 bool isSelected = selectedFilter == filters[index];
+                
+                // Pilih icon berdasarkan filter
+                IconData filterIcon;
+                switch (filters[index]) {
+                  case "Hari Ini": filterIcon = Icons.today; break;
+                  case "Minggu Ini": filterIcon = Icons.date_range; break;
+                  case "Bulan Lalu": filterIcon = Icons.history; break;
+                  default: filterIcon = Icons.apps;
+                }
+
                 return GestureDetector(
                   onTap: () {
                     setState(() {
@@ -124,7 +148,7 @@ class _RiwayatAbsensiPageState extends State<RiwayatAbsensiPage> {
                     child: Row(
                       children: [
                         Icon(
-                          index == 0 ? Icons.apps : index == 1 ? Icons.date_range : Icons.history,
+                          filterIcon,
                           size: 16,
                           color: isSelected ? Colors.white : Colors.grey,
                         ),
