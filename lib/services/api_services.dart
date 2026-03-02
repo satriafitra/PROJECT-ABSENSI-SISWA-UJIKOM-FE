@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   static const String baseUrl =
-      'https://0dd8-36-69-138-169.ngrok-free.app/api';
+      'https://generous-dragon-previously.ngrok-free.app/api';
 
   // ================= LOGIN SISWA =================
   static Future<Map<String, dynamic>> loginSiswa(
