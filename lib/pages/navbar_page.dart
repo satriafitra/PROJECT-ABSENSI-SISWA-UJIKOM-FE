@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart'; // Wajib ditambahkan
+import '../providers/theme_provider.dart'; // Sesuaikan path provider Anda
 import 'home_absensi.dart';
 import 'qr_scanner_page.dart';
 import 'kalender.dart';
 import '../widgets/app_header.dart';
 import '../widgets/app_drawer.dart';
-
-const orangeMain = Color.fromARGB(255, 254, 111, 71);
-const orangeSoft = Color(0xFFFFC09A);
-const yellowQR = Color(0xFFFFC107);
 
 class NavbarPage extends StatefulWidget {
   const NavbarPage({super.key});
@@ -25,80 +24,94 @@ class _NavbarPageState extends State<NavbarPage> {
     KalenderPage(),
   ];
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      endDrawer: const AppDrawer(), // 🔥 INI YANG KAMU LUPA
-
-      // ================= HEADER GLOBAL =================
-      body: Column(
-        children: [
-          const AppHeader(), // 🔥 Hanya 1 kali di Navbar
-          Expanded(
-            child: PageView(
-              controller: _pageController,
-              onPageChanged: (i) {
-                setState(() => index = i);
-              },
-              children: pages,
-            ),
-          ),
-        ],
-      ),
-
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: _qrButton(),
-      bottomNavigationBar: _bottomNav(),
+  void _onItemTapped(int i) {
+    HapticFeedback.selectionClick();
+    setState(() => index = i);
+    _pageController.animateToPage(
+      i,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeInOutQuart,
     );
   }
 
-  // ================= BOTTOM NAV (TIDAK DIUBAH) =================
-  Widget _bottomNav() {
+  @override
+  Widget build(BuildContext context) {
+    // Memanggil provider
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
+    return Scaffold(
+      // Menggunakan warna background dari provider
+      backgroundColor: themeProvider.bgWhite,
+      extendBody: true,
+      endDrawer: const AppDrawer(),
+      body: Stack(
+        children: [
+          Column(
+            children: [
+              const AppHeader(),
+              Expanded(
+                child: PageView(
+                  controller: _pageController,
+                  onPageChanged: (i) => setState(() => index = i),
+                  children: pages,
+                ),
+              ),
+              const SizedBox(height: 100),
+            ],
+          ),
+        ],
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: _qrButton(themeProvider), // Kirim provider ke widget
+      bottomNavigationBar: _buildEnhancedNav(themeProvider), // Kirim provider ke widget
+    );
+  }
+
+  // ================= ENHANCED BOTTOM NAV (DYNAMIZED) =================
+  Widget _buildEnhancedNav(ThemeProvider themeProvider) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
-            blurRadius: 28,
-            offset: Offset(0, -6),
-            color: Colors.black12,
-          )
+            color: Colors.black.withOpacity(themeProvider.isDarkMode ? 0.3 : 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, -5),
+          ),
         ],
       ),
       child: ClipRRect(
         borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(42),
-          topRight: Radius.circular(42),
+          topLeft: Radius.circular(35),
+          topRight: Radius.circular(35),
         ),
         child: BottomAppBar(
-          color: orangeMain,
+          padding: EdgeInsets.zero,
+          elevation: 0,
+          notchMargin: 12,
+          // Menggunakan warna card dari provider (Putih atau Abu Gelap)
+          color: themeProvider.cardColor, 
           shape: const CircularNotchedRectangle(),
-          notchMargin: 16,
           child: SizedBox(
-            height: 86,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 36),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _navIcon(
-                    icon: Icons.dashboard_rounded,
-                    isActive: index == 0,
-                    onTap: () {
-                      setState(() => index = 0);
-                      _pageController.jumpToPage(0);
-                    },
-                  ),
-                  const SizedBox(width: 72),
-                  _navIcon(
-                    icon: Icons.event_available_rounded,
-                    isActive: index == 1,
-                    onTap: () {
-                      setState(() => index = 1);
-                      _pageController.jumpToPage(1);
-                    },
-                  ),
-                ],
-              ),
+            height: 75,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _navItem(
+                  themeProvider, // Kirim provider
+                  label: "Home",
+                  icon: Icons.grid_view_rounded,
+                  isActive: index == 0,
+                  onTap: () => _onItemTapped(0),
+                ),
+                const SizedBox(width: 60),
+                _navItem(
+                  themeProvider, // Kirim provider
+                  label: "History",
+                  icon: Icons.event_note_rounded,
+                  isActive: index == 1,
+                  onTap: () => _onItemTapped(1),
+                ),
+              ],
             ),
           ),
         ),
@@ -106,58 +119,77 @@ class _NavbarPageState extends State<NavbarPage> {
     );
   }
 
-  Widget _navIcon({
+  Widget _navItem(
+    ThemeProvider themeProvider, {
+    required String label,
     required IconData icon,
     required bool isActive,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.translucent,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          boxShadow: isActive
-              ? [
-                  BoxShadow(
-                    color: orangeSoft.withOpacity(0.9),
-                    blurRadius: 22,
-                    spreadRadius: 2,
-                  ),
-                ]
-              : [],
-        ),
-        child: AnimatedScale(
-          scale: isActive ? 1.15 : 1.0,
-          duration: const Duration(milliseconds: 250),
-          child: Icon(
-            icon,
-            size: 34,
-            color: Colors.white,
-          ),
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                // Jika aktif, gunakan orange soft, jika gelap buat lebih transparan agar elegan
+                color: isActive 
+                    ? (themeProvider.isDarkMode ? Colors.orange.withOpacity(0.15) : const Color(0xFFFFE5D9).withOpacity(0.5))
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Icon(
+                icon,
+                size: 26,
+                // Gunakan orange deep jika aktif, gunakan grey terang jika gelap & tidak aktif
+                color: isActive ? const Color(0xFFFE6F47) : (themeProvider.isDarkMode ? Colors.grey[600] : Colors.grey[400]),
+              ),
+            ),
+            const SizedBox(height: 4),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              width: isActive ? 15 : 0,
+              height: 3,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFE6F47),
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-// ================= QR BUTTON (LARGE & SPACIOUS) =================
-  Widget _qrButton() {
+  // ================= QR BUTTON (DYNAMIZED) =================
+  Widget _qrButton(ThemeProvider themeProvider) {
     return Container(
-      // Container luar sebagai pembatas putih
-      width: 82,
-      height: 82,
-      decoration: const BoxDecoration(
+      width: 68,
+      height: 68,
+      decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: Colors.white, // Memberikan ring putih di luar lingkaran orange
+        // Wadah luar mengikuti warna card agar "lubang" notch tidak terlihat aneh
+        color: themeProvider.cardColor, 
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFFE6F47).withOpacity(0.2),
+            blurRadius: 12,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
+      padding: const EdgeInsets.all(4),
       child: FloatingActionButton(
         elevation: 0,
-        backgroundColor:
-            Colors.transparent, // Agar background putih di atas yang terlihat
+        backgroundColor: Colors.transparent,
         onPressed: () {
+          HapticFeedback.heavyImpact();
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const QrScanPage()),
@@ -165,32 +197,19 @@ class _NavbarPageState extends State<NavbarPage> {
         },
         shape: const CircleBorder(),
         child: Container(
-          // DISINI PERUBAHANNYA: Ukuran diperbesar secara signifikan
-          width: 70,
-          height: 70,
-          decoration: BoxDecoration(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: const BoxDecoration(
             shape: BoxShape.circle,
-            gradient: const LinearGradient(
+            gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                Color.fromARGB(255, 240, 72, 26),
-                Color(0xFFFF8E62), // Warna orange yang sedikit lebih terang
-              ],
+              colors: [Color(0xFFFF8E62), Color(0xFFFE6F47), Color(0xFFE65100)],
             ),
-            boxShadow: [
-              BoxShadow(
-                color: orangeMain.withOpacity(0.4),
-                blurRadius: 15,
-                offset: const Offset(0, 6),
-              ),
-            ],
           ),
-          // Gunakan Center agar icon tetap presisi di tengah container besar
           child: const Icon(
-            Icons.qr_code_2_rounded, // Icon yang lebih modern/liquid
-            // Icon tetap di ukuran medium agar terlihat elegan dalam container besar
-            size: 37,
+            Icons.qr_code_scanner_rounded,
+            size: 28,
             color: Colors.white,
           ),
         ),

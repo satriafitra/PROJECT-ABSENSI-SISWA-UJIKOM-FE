@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart'; // Wajib
+import '../providers/theme_provider.dart'; // Sesuaikan path
 import '../widgets/schedule_card.dart';
 import '../widgets/week_status.dart';
-
-const orangeMain = Color(0xFFFF7A30);
-const orangeSoft = Color(0xFFFFC09A);
-const orangeDark = Color(0xFFFF3B1F);
-const textGrey = Color(0xFF9E9E9E);
-const textDark = Color(0xFF2E2E2E);
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -17,39 +13,38 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  // Palette warna tetap (Orange tidak berubah)
+  final Color orangeMain = const Color(0xFFFF7A30);
+  final Color orangeSoft = const Color(0xFFFFC09A);
+  final Color orangeDark = const Color(0xFFFF3B1F);
+
   String _getDaySuffix(int day) {
     if (day >= 11 && day <= 13) return 'th';
     switch (day % 10) {
-      case 1:
-        return 'st';
-      case 2:
-        return 'nd';
-      case 3:
-        return 'rd';
-      default:
-        return 'th';
+      case 1: return 'st';
+      case 2: return 'nd';
+      case 3: return 'rd';
+      default: return 'th';
     }
   }
 
-  // FUNGSI UNTUK MENAMPILKAN BOTTOM SHEET (INPUT MANUAL)
-  void _showPermissionForm(BuildContext context) {
-    String selectedType = 'Sakit'; // Default value
+  // FUNGSI UNTUK MENAMPILKAN BOTTOM SHEET (Disesuaikan Tema)
+  void _showPermissionForm(BuildContext context, ThemeProvider themeProvider) {
+    String selectedType = 'Sakit';
     final TextEditingController reasonController = TextEditingController();
 
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true, // Agar keyboard tidak menutupi input
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => StatefulBuilder(
         builder: (context, setModalState) => Container(
           padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context)
-                .viewInsets
-                .bottom, // Geser ke atas saat keyboard muncul
+            bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+          decoration: BoxDecoration(
+            color: themeProvider.cardColor, // Dinamis
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
           ),
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
@@ -57,67 +52,63 @@ class _HomePageState extends State<HomePage> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Handle Bar (Garis kecil di atas)
                 Center(
                   child: Container(
                     width: 50,
                     height: 5,
                     decoration: BoxDecoration(
-                      color: textGrey.withOpacity(0.3),
+                      color: themeProvider.subTextColor.withOpacity(0.3),
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
                 ),
                 const SizedBox(height: 25),
-                const Text(
+                Text(
                   "Form Izin & Sakit",
                   style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: textDark),
+                      color: themeProvider.textColor), // Dinamis
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   "Silakan pilih alasan dan berikan keterangan singkat.",
-                  style: TextStyle(fontSize: 14, color: textGrey),
+                  style: TextStyle(fontSize: 14, color: themeProvider.subTextColor),
                 ),
                 const SizedBox(height: 25),
-
-                // Opsi Pilihan (Sakit / Izin)
-                const Text("Pilih Alasan",
-                    style: TextStyle(fontWeight: FontWeight.bold)),
+                Text("Pilih Alasan",
+                    style: TextStyle(fontWeight: FontWeight.bold, color: themeProvider.textColor)),
                 const SizedBox(height: 12),
                 Row(
                   children: [
                     _buildChoiceChip(
+                      themeProvider,
                       label: "Sakit",
                       isSelected: selectedType == 'Sakit',
-                      onSelected: (val) =>
-                          setModalState(() => selectedType = 'Sakit'),
+                      onSelected: (val) => setModalState(() => selectedType = 'Sakit'),
                     ),
                     const SizedBox(width: 12),
                     _buildChoiceChip(
+                      themeProvider,
                       label: "Izin",
                       isSelected: selectedType == 'Izin',
-                      onSelected: (val) =>
-                          setModalState(() => selectedType = 'Izin'),
+                      onSelected: (val) => setModalState(() => selectedType = 'Izin'),
                     ),
                   ],
                 ),
                 const SizedBox(height: 25),
-
-                // Input Keterangan
-                const Text("Keterangan",
-                    style: TextStyle(fontWeight: FontWeight.bold)),
+                Text("Keterangan",
+                    style: TextStyle(fontWeight: FontWeight.bold, color: themeProvider.textColor)),
                 const SizedBox(height: 12),
                 TextField(
                   controller: reasonController,
                   maxLines: 3,
+                  style: TextStyle(color: themeProvider.textColor),
                   decoration: InputDecoration(
-                    hintText: "Contoh: Demam tinggi atau keperluan keluarga...",
-                    hintStyle: const TextStyle(color: textGrey, fontSize: 14),
+                    hintText: "Contoh: Demam tinggi...",
+                    hintStyle: TextStyle(color: themeProvider.subTextColor, fontSize: 14),
                     filled: true,
-                    fillColor: Colors.grey[100],
+                    fillColor: themeProvider.isDarkMode ? Colors.white.withOpacity(0.05) : Colors.grey[100],
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
                       borderSide: BorderSide.none,
@@ -125,32 +116,24 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 const SizedBox(height: 30),
-
-                // Tombol Kirim
                 SizedBox(
                   width: double.infinity,
                   height: 55,
                   child: ElevatedButton(
                     onPressed: () {
-                      // Tambahkan logika pengiriman data di sini
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text("Laporan berhasil dikirim!")),
+                        const SnackBar(content: Text("Laporan berhasil dikirim!")),
                       );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: orangeMain,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       elevation: 0,
                     ),
                     child: const Text(
                       "Kirim Laporan",
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold),
+                      style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -163,8 +146,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Widget pembantu untuk Chip Pilihan
-  Widget _buildChoiceChip({
+  Widget _buildChoiceChip(
+    ThemeProvider themeProvider, {
     required String label,
     required bool isSelected,
     required Function(bool) onSelected,
@@ -174,21 +157,21 @@ class _HomePageState extends State<HomePage> {
       selected: isSelected,
       onSelected: onSelected,
       selectedColor: orangeMain,
-      backgroundColor: Colors.grey[100],
+      backgroundColor: themeProvider.isDarkMode ? Colors.white.withOpacity(0.1) : Colors.grey[100],
       labelStyle: TextStyle(
-        color: isSelected ? Colors.white : textDark,
+        color: isSelected ? Colors.white : themeProvider.textColor,
         fontWeight: FontWeight.bold,
       ),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       showCheckmark: false,
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    
     final DateTime now = DateTime.now();
     final String dayNumber = DateFormat('d').format(now);
     final String dayName = DateFormat('EEEE').format(now);
@@ -196,7 +179,7 @@ class _HomePageState extends State<HomePage> {
     final String suffix = _getDaySuffix(now.day);
 
     return Scaffold(
-      extendBodyBehindAppBar: true, // Gunakan ini agar efek blur terlihat
+      backgroundColor: themeProvider.bgWhite, // Gunakan bgWhite dinamis
       body: Column(
         children: [
           Expanded(
@@ -205,21 +188,22 @@ class _HomePageState extends State<HomePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _dateCard(dayNumber, suffix, dayName, monthYear),
+                  _dateCard(themeProvider, dayNumber, suffix, dayName, monthYear),
                   const SizedBox(height: 20),
-                  _permissionCard(context),
+                  _permissionCard(context, themeProvider),
                   const SizedBox(height: 25),
-                  const Text(
+                  Text(
                     "Today Schedule",
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: textDark,
+                      color: themeProvider.textColor, // Teks judul dinamis
                     ),
                   ),
                   const SizedBox(height: 15),
+                  // ScheduleCard dan WeekStatus harus dipastikan juga mengambil warna dari provider di dalamnya
                   const ScheduleCard(
-                    subject: "Bahasa indonesia",
+                    subject: "Bahasa Indonesia",
                     teacher: "Pak Pajar",
                     time: "09:00 - 10:00 AM",
                   ),
@@ -231,7 +215,7 @@ class _HomePageState extends State<HomePage> {
                   const ScheduleCard(
                     subject: "Agama",
                     teacher: "Ibu Susi",
-                    time: "10:00 - 11:00 AM",
+                    time: "11:00 - 12:00 PM",
                   ),
                 ],
               ),
@@ -242,18 +226,24 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _permissionCard(BuildContext context) {
+  Widget _permissionCard(BuildContext context, ThemeProvider themeProvider) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [orangeMain.withOpacity(0.1), Colors.white],
+          colors: [
+            orangeMain.withOpacity(themeProvider.isDarkMode ? 0.2 : 0.1),
+            themeProvider.cardColor,
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: orangeSoft.withOpacity(0.5), width: 1.5),
+        border: Border.all(
+          color: orangeSoft.withOpacity(themeProvider.isDarkMode ? 0.2 : 0.5), 
+          width: 1.5
+        ),
       ),
       child: Row(
         children: [
@@ -269,26 +259,24 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text("Lapor Izin atau Sakit?",
+                Text("Lapor Izin atau Sakit?",
                     style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: textDark)),
+                        color: themeProvider.textColor)), // Teks Putih/Hitam
                 const SizedBox(height: 4),
                 Text("Lapor kehadiran manual di sini",
                     style: TextStyle(
-                        fontSize: 13, color: textDark.withOpacity(0.6))),
+                        fontSize: 13, color: themeProvider.subTextColor)),
               ],
             ),
           ),
           ElevatedButton(
-            onPressed: () => _showPermissionForm(context), // MEMANGGIL MODAL
+            onPressed: () => _showPermissionForm(context, themeProvider),
             style: ElevatedButton.styleFrom(
               backgroundColor: orangeMain,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               elevation: 0,
             ),
             child: const Text("Input"),
@@ -298,23 +286,23 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _dateCard(
-      String day, String suffix, String dayName, String monthYear) {
+  Widget _dateCard(ThemeProvider themeProvider, String day, String suffix, String dayName, String monthYear) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: themeProvider.cardColor, // Dinamis
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
               blurRadius: 20,
               offset: const Offset(0, 10),
-              color: Colors.black.withOpacity(.05))
+              color: Colors.black.withOpacity(themeProvider.isDarkMode ? 0.3 : 0.05))
         ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
         child: Stack(
           children: [
+            // Lingkaran Dekorasi Atas
             Positioned(
               right: -60,
               top: -40,
@@ -323,15 +311,16 @@ class _HomePageState extends State<HomePage> {
                   height: 180,
                   decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: orangeSoft.withOpacity(.4))),
+                      color: orangeSoft.withOpacity(themeProvider.isDarkMode ? 0.1 : 0.4))),
             ),
+            // Lingkaran Dekorasi Bawah
             Positioned(
               right: -30,
               bottom: -40,
               child: Container(
                 width: 140,
                 height: 140,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: LinearGradient(colors: [orangeMain, orangeDark])),
               ),
@@ -349,7 +338,7 @@ class _HomePageState extends State<HomePage> {
                           children: [
                             TextSpan(
                                 text: day,
-                                style: const TextStyle(
+                                style: TextStyle(
                                     fontSize: 56,
                                     fontWeight: FontWeight.w700,
                                     color: orangeDark)),
@@ -357,10 +346,10 @@ class _HomePageState extends State<HomePage> {
                                 child: Transform.translate(
                                     offset: const Offset(0, -25),
                                     child: Text(suffix,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w600,
-                                            color: textDark)))),
+                                            color: themeProvider.textColor)))), // Dinamis
                           ],
                         ),
                       ),
@@ -371,27 +360,27 @@ class _HomePageState extends State<HomePage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(dayName,
-                                style: const TextStyle(
+                                style: TextStyle(
                                     fontSize: 17,
                                     fontWeight: FontWeight.w700,
                                     color: orangeMain)),
                             const SizedBox(height: 4),
                             Text(monthYear,
-                                style: const TextStyle(
+                                style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
-                                    color: textGrey)),
+                                    color: themeProvider.subTextColor)), // Dinamis
                           ],
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  const Text("This Week Status",
+                  Text("This Week Status",
                       style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: textDark)),
+                          color: themeProvider.textColor)), // Dinamis
                   const SizedBox(height: 10),
                   const WeekStatus(),
                 ],

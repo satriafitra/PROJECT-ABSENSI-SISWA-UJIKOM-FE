@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import '../providers/theme_provider.dart'; // Sesuaikan path provider kamu
 import '../services/attendance_services.dart';
 import '../models/attendance_model.dart';
 import '../pages/jadwal_mapel.dart';
@@ -8,7 +10,6 @@ import 'riwayat_absensi.dart';
 const orangeMain = Color.fromARGB(255, 254, 111, 71);
 const orangeDeep = Color(0xFFE65100);
 const orangeSoft = Color(0xFFFFE0CC);
-const orangeLight = Color(0xFFFFF3E0);
 
 class KalenderPage extends StatefulWidget {
   const KalenderPage({super.key});
@@ -49,33 +50,36 @@ class _KalenderPageState extends State<KalenderPage> {
         _isLoading = false;
       });
     } catch (e) {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
       debugPrint("Error loading attendance: $e");
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 247, 247, 247),
+      backgroundColor: themeProvider.bgWhite,
       body: Column(
         children: [
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _header(),
-                  const SizedBox(height: 25),
+                  const SizedBox(height: 10),
+                  _header(themeProvider),
+                  const SizedBox(height: 20),
                   _isLoading
                       ? const Center(
                           child: CircularProgressIndicator(color: orangeMain))
-                      : _calendarCard(),
-                  const SizedBox(height: 25),
-                  _infoCard(), // Container dengan Outline Orange
-                  const SizedBox(height: 20),
-                  _legendCard(),
+                      : _calendarCard(themeProvider),
+                  const SizedBox(height: 15), // Jarak dikurangi agar lebih rapat
+                  _infoCard(themeProvider),
+                  const SizedBox(height: 15),
+                  _legendCard(themeProvider),
                   const SizedBox(height: 30),
                 ],
               ),
@@ -86,64 +90,65 @@ class _KalenderPageState extends State<KalenderPage> {
     );
   }
 
-  Widget _header() {
+  Widget _header(ThemeProvider themeProvider) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: const [
+      children: [
         Text(
           "Kalender",
           style: TextStyle(
             fontFamily: 'Poppins',
-            fontSize: 30,
+            fontSize: 28,
             fontWeight: FontWeight.bold,
+            color: themeProvider.textColor,
           ),
         ),
-        SizedBox(height: 6),
+        const SizedBox(height: 4),
         Text(
-          "Lihat aktivitas hari mu di sekolah, semoga hari kamu menyenangkan !!",
+          "Lihat aktivitas hari mu di sekolah dengan mudah.",
           style: TextStyle(
             fontFamily: 'Poppins',
-            color: Colors.black54,
+            fontSize: 13,
+            color: themeProvider.subTextColor,
           ),
         ),
       ],
     );
   }
 
-  Widget _calendarCard() {
-    final daysInMonth =
-        DateUtils.getDaysInMonth(currentMonth.year, currentMonth.month);
+  Widget _calendarCard(ThemeProvider themeProvider) {
+    final daysInMonth = DateUtils.getDaysInMonth(currentMonth.year, currentMonth.month);
     final firstDay = DateTime(currentMonth.year, currentMonth.month, 1).weekday;
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(35),
+        color: themeProvider.cardColor,
+        borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 30,
-            offset: const Offset(0, 15),
+            color: Colors.black.withOpacity(themeProvider.isDarkMode ? 0.3 : 0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(35),
+        borderRadius: BorderRadius.circular(28),
         child: Stack(
           children: [
             const PositionRectangleDecoration(),
             Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
-                  _monthSwitcher(),
-                  const SizedBox(height: 25),
-                  _dayHeader(),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 15),
-                    child: Opacity(
-                      opacity: 0.05,
-                      child: Divider(thickness: 1, color: Colors.black),
+                  _monthSwitcher(themeProvider),
+                  const SizedBox(height: 15),
+                  _dayHeader(themeProvider),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Divider(
+                      thickness: 1, 
+                      color: themeProvider.isDarkMode ? Colors.white10 : Colors.black.withOpacity(0.05)
                     ),
                   ),
                   GridView.builder(
@@ -151,21 +156,17 @@ class _KalenderPageState extends State<KalenderPage> {
                     padding: EdgeInsets.zero,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: daysInMonth + (firstDay % 7),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 7,
-                      mainAxisSpacing: 10,
-                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 8,
+                      crossAxisSpacing: 8,
                     ),
                     itemBuilder: (context, index) {
                       final int offset = firstDay % 7;
                       if (index < offset) return const SizedBox();
-
                       final day = index - offset + 1;
-                      final date =
-                          DateTime(currentMonth.year, currentMonth.month, day);
-
-                      return _dateItem(day: day, date: date);
+                      final date = DateTime(currentMonth.year, currentMonth.month, day);
+                      return _dateItem(day: day, date: date, themeProvider: themeProvider);
                     },
                   ),
                 ],
@@ -177,144 +178,128 @@ class _KalenderPageState extends State<KalenderPage> {
     );
   }
 
-  Widget _monthSwitcher() {
+  Widget _monthSwitcher(ThemeProvider themeProvider) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        _iconBtn(Icons.arrow_back_ios_new_rounded, () {
-          setState(() {
-            currentMonth = DateTime(currentMonth.year, currentMonth.month - 1);
-          });
+        _iconBtn(Icons.arrow_back_ios_new_rounded, themeProvider, () {
+          setState(() => currentMonth = DateTime(currentMonth.year, currentMonth.month - 1));
         }),
         Column(
           children: [
             Text(
               DateFormat('MMMM', 'id').format(currentMonth).toUpperCase(),
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Poppins',
-                fontSize: 18,
-                letterSpacing: 1.5,
+                fontSize: 16,
+                letterSpacing: 1.2,
                 fontWeight: FontWeight.w900,
-                color: Colors.black87,
+                color: themeProvider.textColor,
               ),
             ),
             Text(
               DateFormat('yyyy').format(currentMonth),
               style: TextStyle(
                 fontFamily: 'Poppins',
-                fontSize: 13,
-                letterSpacing: 3,
-                color: orangeMain.withOpacity(0.6),
-                fontWeight: FontWeight.w700,
+                fontSize: 12,
+                color: orangeMain.withOpacity(0.7),
+                fontWeight: FontWeight.bold,
               ),
             ),
           ],
         ),
-        _iconBtn(Icons.arrow_forward_ios_rounded, () {
-          setState(() {
-            currentMonth = DateTime(currentMonth.year, currentMonth.month + 1);
-          });
+        _iconBtn(Icons.arrow_forward_ios_rounded, themeProvider, () {
+          setState(() => currentMonth = DateTime(currentMonth.year, currentMonth.month + 1));
         }),
       ],
     );
   }
 
-  Widget _iconBtn(IconData icon, VoidCallback onTap) {
+  Widget _iconBtn(IconData icon, ThemeProvider themeProvider, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 42,
-        width: 42,
+        height: 38,
+        width: 38,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: themeProvider.isDarkMode ? Colors.white.withOpacity(0.05) : Colors.white,
           shape: BoxShape.circle,
-          border: Border.all(color: orangeSoft.withOpacity(0.5), width: 1),
+          border: Border.all(color: orangeSoft.withOpacity(0.3), width: 1),
         ),
-        child: Icon(icon, color: orangeMain, size: 16),
+        child: Icon(icon, color: orangeMain, size: 14),
       ),
     );
   }
 
-  Widget _dayHeader() {
+  Widget _dayHeader(ThemeProvider themeProvider) {
     const days = ['MIN', 'SEN', 'SEL', 'RAB', 'KAM', 'JUM', 'SAB'];
     return Row(
-      children: days
-          .map((e) => Expanded(
-                child: Text(
-                  e,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontWeight: FontWeight.w800,
-                    fontSize: 10,
-                    color: e == 'MIN' || e == 'SAB'
-                        ? Colors.redAccent.withOpacity(0.7)
-                        : Colors.black26,
-                  ),
-                ),
-              ))
-          .toList(),
+      children: days.map((e) => Expanded(
+        child: Text(
+          e,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.w800,
+            fontSize: 10,
+            color: e == 'MIN' || e == 'SAB'
+                ? Colors.redAccent.withOpacity(0.8)
+                : themeProvider.subTextColor.withOpacity(0.5),
+          ),
+        ),
+      )).toList(),
     );
   }
 
-  Widget _dateItem({required int day, required DateTime date}) {
+  Widget _dateItem({required int day, required DateTime date, required ThemeProvider themeProvider}) {
     final String dateKey = DateFormat('yyyy-MM-dd').format(date);
     final bool hasAttended = _attendanceData.containsKey(dateKey);
-    final String? status =
-        hasAttended ? _attendanceData[dateKey]!.status.toUpperCase() : null;
-
+    final String? status = hasAttended ? _attendanceData[dateKey]!.status.toUpperCase() : null;
     final bool isToday = DateUtils.isSameDay(date, today);
-    final bool isSelected =
-        selectedDate != null && DateUtils.isSameDay(selectedDate, date);
+    final bool isSelected = selectedDate != null && DateUtils.isSameDay(selectedDate, date);
 
     Color statusColor = _getStatusColor(status);
-
     BoxDecoration decoration;
-    Color textColor = Colors.black87;
+    Color textColor = themeProvider.textColor;
 
     if (isSelected) {
       decoration = BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        gradient: const LinearGradient(
-          colors: [orangeDeep, orangeMain],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        borderRadius: BorderRadius.circular(12),
+        gradient: const LinearGradient(colors: [orangeDeep, orangeMain]),
       );
       textColor = Colors.white;
     } else if (hasAttended) {
       decoration = BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        color: statusColor.withOpacity(0.08),
-        border: Border.all(color: statusColor, width: 2),
+        borderRadius: BorderRadius.circular(12),
+        color: statusColor.withOpacity(0.12),
+        border: Border.all(color: statusColor, width: 1.5),
       );
       textColor = statusColor;
     } else if (isToday) {
       decoration = BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: orangeMain, width: 1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: orangeMain, width: 1.5),
       );
-      textColor = orangeDeep;
+      textColor = orangeMain;
     } else {
       decoration = BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: const Color(0xFFF5F5F5), width: 1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: themeProvider.isDarkMode ? Colors.white10 : const Color(0xFFF5F5F5), width: 1),
       );
     }
 
     return GestureDetector(
       onTap: () => setState(() => selectedDate = date),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 200),
         decoration: decoration,
         alignment: Alignment.center,
         child: Text(
           day.toString(),
           style: TextStyle(
             fontFamily: 'Poppins',
-            fontWeight:
-                isSelected || hasAttended ? FontWeight.bold : FontWeight.w500,
-            fontSize: 14,
+            fontWeight: isSelected || hasAttended ? FontWeight.bold : FontWeight.w500,
+            fontSize: 13,
             color: textColor,
           ),
         ),
@@ -324,80 +309,57 @@ class _KalenderPageState extends State<KalenderPage> {
 
   Color _getStatusColor(String? status) {
     switch (status) {
-      case 'HADIR':
-        return const Color(0xFF4CAF50);
-      case 'SAKIT':
-        return const Color(0xFF2196F3);
-      case 'IZIN':
-        return const Color(0xFFFFC107);
-      case 'ALFA':
-        return const Color(0xFFF44336);
-      default:
-        return Colors.grey;
+      case 'HADIR': return const Color(0xFF4CAF50);
+      case 'SAKIT': return const Color(0xFF2196F3);
+      case 'IZIN': return const Color(0xFFFFC107);
+      case 'ALFA': return const Color(0xFFF44336);
+      default: return Colors.grey;
     }
   }
 
-  Widget _legendCard() {
+  Widget _legendCard(ThemeProvider themeProvider) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: Colors.black.withOpacity(0.03)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 25,
-            offset: const Offset(0, 15),
-          ),
-        ],
+        color: themeProvider.cardColor,
+        borderRadius: BorderRadius.circular(28),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min, // Agar column padat
         children: [
           Row(
             children: [
-              Container(
-                width: 4,
-                height: 20,
-                decoration: BoxDecoration(
-                  color: orangeMain,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              const SizedBox(width: 12),
-              const Text(
+              Container(width: 4, height: 18, decoration: BoxDecoration(color: orangeMain, borderRadius: BorderRadius.circular(10))),
+              const SizedBox(width: 10),
+              Text(
                 "Keterangan Status",
                 style: TextStyle(
                   fontFamily: 'Poppins',
-                  fontSize: 17,
+                  fontSize: 16,
                   fontWeight: FontWeight.w800,
-                  letterSpacing: 0.5,
-                  color: Color(0xFF2D3142),
+                  color: themeProvider.textColor,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 12),
           GridView(
-            shrinkWrap: true,
             padding: EdgeInsets.zero,
+            shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              mainAxisExtent: 65,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
+              crossAxisCount: 2, 
+              mainAxisExtent: 58, // Lebih rapat
+              mainAxisSpacing: 10, 
+              crossAxisSpacing: 10,
             ),
             children: [
-              _legendItem(
-                  "Hadir", const Color(0xFF4CAF50), Icons.check_circle_rounded),
-              _legendItem("Sakit", const Color(0xFF2196F3),
-                  Icons.local_hospital_rounded),
-              _legendItem("Izin", const Color(0xFFFFC107), Icons.mail_rounded),
-              _legendItem(
-                  "Alfa", const Color(0xFFF44336), Icons.cancel_rounded),
+              _legendItem("Hadir", const Color(0xFF4CAF50), Icons.check_circle_rounded, themeProvider),
+              _legendItem("Sakit", const Color(0xFF2196F3), Icons.local_hospital_rounded, themeProvider),
+              _legendItem("Izin", const Color(0xFFFFC107), Icons.mail_rounded, themeProvider),
+              _legendItem("Alfa", const Color(0xFFF44336), Icons.cancel_rounded, themeProvider),
             ],
           ),
         ],
@@ -405,134 +367,74 @@ class _KalenderPageState extends State<KalenderPage> {
     );
   }
 
-  Widget _legendItem(String label, Color color, IconData icon) {
+  Widget _legendItem(String label, Color color, IconData icon, ThemeProvider themeProvider) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: color.withOpacity(0.15), width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.06),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: themeProvider.isDarkMode ? Colors.white.withOpacity(0.03) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.15), width: 1),
       ),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: color, size: 20),
-          ),
-          const SizedBox(width: 12),
+          Icon(icon, color: color, size: 18),
+          const SizedBox(width: 10),
           Text(
-            label,
-            style: const TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF4F5D75),
-            ),
+            label, 
+            style: TextStyle(
+              fontFamily: 'Poppins', 
+              fontSize: 13, 
+              fontWeight: FontWeight.bold, 
+              color: themeProvider.textColor
+            )
           ),
         ],
       ),
     );
   }
 
-  // --- BAGIAN YANG DI PERBARUI (INFO CARD DENGAN OUTLINE ORANGE) ---
-  Widget _infoCard() {
+  Widget _infoCard(ThemeProvider themeProvider) {
     return Container(
-      padding: const EdgeInsets.all(22),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
-        // Memberikan outline orange yang elegan
-        border: Border.all(
-          color: orangeMain.withOpacity(0.4), 
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: orangeMain.withOpacity(0.05), 
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        color: themeProvider.cardColor,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: orangeMain.withOpacity(0.3), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: orangeSoft.withOpacity(0.4),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.info_outline_rounded,
-                  color: orangeMain,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Text(
-                  "Aktivitas & Riwayat",
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF2D3142),
-                  ),
-                ),
+              const Icon(Icons.info_outline_rounded, color: orangeMain, size: 18),
+              const SizedBox(width: 10),
+              Text(
+                "Aktivitas & Riwayat", 
+                style: TextStyle(
+                  fontFamily: 'Poppins', 
+                  fontSize: 15, 
+                  fontWeight: FontWeight.bold, 
+                  color: themeProvider.textColor
+                )
               ),
             ],
           ),
-          const SizedBox(height: 15),
-          const Text(
-            "Gunakan tombol di bawah untuk melihat rincian kehadiran atau jadwal pelajaran kamu.",
-            style: TextStyle(
-              fontFamily: 'Poppins',
-              color: Colors.black54,
-              fontSize: 13,
-              height: 1.5,
-            ),
+          const SizedBox(height: 10),
+          Text(
+            "Lihat rincian kehadiran atau jadwal pelajaran kamu.",
+            style: TextStyle(fontFamily: 'Poppins', color: themeProvider.subTextColor, fontSize: 12),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
           Row(
             children: [
-              _actionBtn(
-                "Jadwal",
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const JadwalMapelPage(),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(width: 12),
-              _actionBtn(
-                "Riwayat",
-                filled: true,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const RiwayatAbsensiPage(),
-                    ),
-                  ).then((_) => _loadAttendanceHistory());
-                },
-              ),
+              _actionBtn("Jadwal", themeProvider, onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const JadwalMapelPage()));
+              }),
+              const SizedBox(width: 10),
+              _actionBtn("Riwayat", themeProvider, filled: true, onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const RiwayatAbsensiPage()))
+                    .then((_) => _loadAttendanceHistory());
+              }),
             ],
           )
         ],
@@ -540,32 +442,26 @@ class _KalenderPageState extends State<KalenderPage> {
     );
   }
 
-  Widget _actionBtn(String text, {bool filled = false, required VoidCallback onTap}) {
+  Widget _actionBtn(String text, ThemeProvider themeProvider, {bool filled = false, required VoidCallback onTap}) {
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 14),
+          padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: filled ? orangeMain : Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: orangeMain, width: 1.5),
-            boxShadow: filled ? [
-              BoxShadow(
-                color: orangeMain.withOpacity(0.2),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              )
-            ] : null,
+            color: filled ? orangeMain : Colors.transparent,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: orangeMain, width: 1.2),
           ),
           alignment: Alignment.center,
           child: Text(
-            text,
+            text, 
             style: TextStyle(
-              fontFamily: 'Poppins',
-              color: filled ? Colors.white : orangeMain,
-              fontWeight: FontWeight.w700,
-            ),
+              fontFamily: 'Poppins', 
+              color: filled ? Colors.white : orangeMain, 
+              fontSize: 13,
+              fontWeight: FontWeight.bold
+            )
           ),
         ),
       ),
@@ -579,13 +475,13 @@ class PositionRectangleDecoration extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      top: -20,
-      right: -20,
+      top: -15,
+      right: -15,
       child: Container(
-        height: 100,
-        width: 100,
+        height: 80,
+        width: 80,
         decoration: BoxDecoration(
-          color: orangeSoft.withOpacity(0.1),
+          color: orangeSoft.withOpacity(0.08),
           shape: BoxShape.circle,
         ),
       ),

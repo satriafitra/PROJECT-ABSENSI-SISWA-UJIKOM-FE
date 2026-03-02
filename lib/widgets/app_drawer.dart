@@ -3,6 +3,7 @@ import 'package:quickalert/quickalert.dart';
 import '../utils/session.dart';
 import '../pages/login_page.dart';
 import '../pages/area_gps.dart';
+import '../pages/pengaturan.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -87,7 +88,13 @@ class AppDrawer extends StatelessWidget {
                   context,
                   icon: Icons.settings_suggest_rounded,
                   title: "Pengaturan",
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const SettingsPage()),
+                    );
+                  },
                 ),
               ],
             ),
