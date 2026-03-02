@@ -1,10 +1,10 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../utils/session.dart';
+import '../providers/theme_provider.dart'; // Pastikan path ini benar
 
 const orangeMain = Color(0xFFFF7A30);
-const orangeSoft = Color(0xFFFFE0D1); // Diperhalus warnanya
-const darkNavy = Color(0xFF2D3436); // Warna teks premium
 
 class AppHeader extends StatelessWidget {
   const AppHeader({super.key});
@@ -19,6 +19,10 @@ class AppHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Mengambil state tema
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+
     final fullName = Session.studentName ?? 'Siswa';
     final shortName = _shortName(fullName);
 
@@ -29,14 +33,15 @@ class AppHeader extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // NOTIFICATION ICON DENGAN BADGE
+            // NOTIFICATION ICON
             _buildIconButton(
               icon: Icons.notifications_outlined,
               onTap: () {},
               hasBadge: true,
+              themeProvider: themeProvider,
             ),
 
-            // PREMIUM PROFILE CARD (Glassmorphism Style)
+            // PREMIUM PROFILE CARD (Adaptive Glassmorphism)
             Expanded(
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -45,18 +50,26 @@ class AppHeader extends StatelessWidget {
                   borderRadius: BorderRadius.circular(24),
                   gradient: LinearGradient(
                     colors: [
-                      Colors.white.withOpacity(0.9),
-                      Colors.white.withOpacity(0.7),
+                      isDark 
+                          ? Colors.white.withOpacity(0.1) 
+                          : Colors.white.withOpacity(0.9),
+                      isDark 
+                          ? Colors.white.withOpacity(0.05) 
+                          : Colors.white.withOpacity(0.7),
                     ],
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.06),
+                      color: Colors.black.withOpacity(isDark ? 0.3 : 0.06),
                       blurRadius: 20,
                       offset: const Offset(0, 8),
                     ),
                   ],
-                  border: Border.all(color: Colors.white.withOpacity(0.5)),
+                  border: Border.all(
+                    color: isDark 
+                        ? Colors.white.withOpacity(0.1) 
+                        : Colors.white.withOpacity(0.5),
+                  ),
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(24),
@@ -76,7 +89,7 @@ class AppHeader extends StatelessWidget {
                             ),
                             child: CircleAvatar(
                               radius: 18,
-                              backgroundColor: Colors.white,
+                              backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                               child: Text(
                                 shortName[0].toUpperCase(),
                                 style: const TextStyle(
@@ -97,17 +110,17 @@ class AppHeader extends StatelessWidget {
                                   'Selamat Pagi,',
                                   style: TextStyle(
                                     fontSize: 10,
-                                    color: Colors.black.withOpacity(0.5),
+                                    color: themeProvider.subTextColor,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
                                 Text(
                                   shortName,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w700,
-                                    color: Colors.black87,
+                                    color: themeProvider.textColor,
                                     letterSpacing: 0.3,
                                   ),
                                 ),
@@ -124,8 +137,9 @@ class AppHeader extends StatelessWidget {
 
             // MENU BUTTON
             _buildIconButton(
-              icon: Icons.notes_rounded, // Icon lebih estetik daripada menu biasa
+              icon: Icons.notes_rounded,
               onTap: () => Scaffold.of(context).openEndDrawer(),
+              themeProvider: themeProvider,
             ),
           ],
         ),
@@ -133,12 +147,14 @@ class AppHeader extends StatelessWidget {
     );
   }
 
-  // Helper Widget untuk Icon Button agar seragam
   Widget _buildIconButton({
     required IconData icon,
     required VoidCallback onTap,
+    required ThemeProvider themeProvider,
     bool hasBadge = false,
   }) {
+    final isDark = themeProvider.isDarkMode;
+
     return GestureDetector(
       onTap: onTap,
       child: Stack(
@@ -147,17 +163,21 @@ class AppHeader extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: themeProvider.cardColor,
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
               ],
             ),
-            child: Icon(icon, size: 22, color: Colors.black87),
+            child: Icon(
+              icon, 
+              size: 22, 
+              color: themeProvider.textColor,
+            ),
           ),
           if (hasBadge)
             Positioned(
@@ -169,7 +189,10 @@ class AppHeader extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Colors.redAccent,
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 2),
+                  border: Border.all(
+                    color: themeProvider.cardColor, 
+                    width: 2,
+                  ),
                 ),
               ),
             ),

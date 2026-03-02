@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'navbar_page.dart';
 import '../services/api_services.dart';
 import '../utils/session.dart';
 import '../widgets/alert.dart';
+import '../providers/theme_provider.dart'; // Pastikan path provider benar
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -80,7 +82,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
         );
       } else {
         if (!mounted) return;
-        CoolAlert.show(
+         CoolAlert.show(
           context: context,
           isSuccess: false,
           title: 'Gagal Login',
@@ -102,43 +104,45 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: themeProvider.bgWhite, // Adaptif background
       body: SingleChildScrollView(
-        // Menggunakan physics bouncing agar kesan mewahnya terasa saat di-scroll
         physics: const BouncingScrollPhysics(),
         child: Column(
           children: [
-            // 1. HEADER SECTION (Logo & Teks Selamat Datang)
+            // 1. HEADER SECTION
             Stack(
               alignment: Alignment.center,
               children: [
                 ClipPath(
                   clipper: SimpleRoundedClipper(),
                   child: Container(
-                    height: 380, // Tinggi header yang pas
+                    height: 380,
                     width: double.infinity,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topRight,
                         end: Alignment.bottomLeft,
-                        colors: [Color(0xFFFF8E62), Color(0xFFE65100)],
+                        colors: isDark 
+                          ? [const Color(0xFFE65100), const Color(0xFFBF360C)] // Lebih Deep saat Dark
+                          : [const Color(0xFFFF8E62), const Color(0xFFE65100)],
                       ),
                     ),
                   ),
                 ),
                 
-                // Dekorasi Aura Lingkaran
                 Positioned(
                   top: -20,
                   right: -20,
                   child: _buildCircle(180, Colors.white.withOpacity(0.08)),
                 ),
 
-                // Konten di dalam Header
                 Column(
                   children: [
-                    const SizedBox(height: 60), // Geser ke atas agar tidak nabrak
+                    const SizedBox(height: 60),
                     ScaleTransition(
                       scale: _scaleAnimation,
                       child: Container(
@@ -182,36 +186,38 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                         fontWeight: FontWeight.w400,
                       ),
                     ),
-                    const SizedBox(height: 40), // Ruang kosong sebelum Clipper berakhir
+                    const SizedBox(height: 40),
                   ],
                 ),
               ],
             ),
 
-            // 2. FORM SECTION (Mengikuti alur Scroll)
+            // 2. FORM SECTION
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 10),
-                  _buildLabel("IDENTIFICATION NUMBER"),
+                  _buildLabel("IDENTIFICATION NUMBER", themeProvider),
                   const SizedBox(height: 12),
                   _buildTextField(
                     controller: nisnController,
                     hint: "Enter your NISN",
                     icon: Icons.badge_outlined,
+                    themeProvider: themeProvider,
                   ),
 
                   const SizedBox(height: 25),
 
-                  _buildLabel("SECURITY PASSWORD"),
+                  _buildLabel("SECURITY PASSWORD", themeProvider),
                   const SizedBox(height: 12),
                   _buildTextField(
                     controller: passwordController,
                     hint: "Enter your password",
                     icon: Icons.lock_outline_rounded,
                     isPassword: true,
+                    themeProvider: themeProvider,
                   ),
 
                   const SizedBox(height: 40),
@@ -225,13 +231,12 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFE65100),
                         foregroundColor: Colors.white,
-                        elevation: 0, // Flat design lebih mewah di latar putih
+                        elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(18),
                         ),
                       ).copyWith(
-                        // Efek shadow manual agar lebih soft
-                        shadowColor: WidgetStateProperty.all(const Color(0xFFE65100).withOpacity(0.4)),
+                        shadowColor: WidgetStateProperty.all(const Color(0xFFE65100).withOpacity(isDark ? 0.2 : 0.4)),
                         elevation: WidgetStateProperty.resolveWith((states) => states.contains(WidgetState.pressed) ? 2 : 6),
                       ),
                       child: _loading
@@ -263,11 +268,11 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                           style: TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 13,
-                            color: Colors.grey[400],
+                            color: themeProvider.subTextColor,
                           ),
                         ),
                         TextButton(
-                          onPressed: () {}, // Link ke admin atau help
+                          onPressed: () {},
                           child: const Text(
                             "Contact School Administrator",
                             style: TextStyle(
@@ -299,14 +304,14 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     );
   }
 
-  Widget _buildLabel(String text) {
+  Widget _buildLabel(String text, ThemeProvider theme) {
     return Text(
       text,
       style: TextStyle(
         fontFamily: 'Poppins',
         fontSize: 11,
         fontWeight: FontWeight.w800,
-        color: Colors.grey[500],
+        color: theme.subTextColor.withOpacity(0.7),
         letterSpacing: 1.1,
       ),
     );
@@ -316,29 +321,40 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     required TextEditingController controller,
     required String hint,
     required IconData icon,
+    required ThemeProvider themeProvider,
     bool isPassword = false,
   }) {
+    final isDark = themeProvider.isDarkMode;
+
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFF8F9FB), // Warna abu-abu yang sangat elegan
+        color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF8F9FB),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEDEFF3), width: 1),
+        border: Border.all(
+          color: isDark ? Colors.white10 : const Color(0xFFEDEFF3), 
+          width: 1
+        ),
       ),
       child: TextFormField(
         controller: controller,
         obscureText: isPassword ? _obscureText : false,
-        style: const TextStyle(fontFamily: 'Poppins', fontSize: 15, fontWeight: FontWeight.w600),
+        style: TextStyle(
+          fontFamily: 'Poppins', 
+          fontSize: 15, 
+          fontWeight: FontWeight.w600,
+          color: themeProvider.textColor,
+        ),
         decoration: InputDecoration(
           hintText: hint,
           prefixIcon: Icon(icon, color: const Color(0xFFE65100).withOpacity(0.7), size: 22),
-          hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
+          hintStyle: TextStyle(color: themeProvider.subTextColor.withOpacity(0.5), fontSize: 14),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
           suffixIcon: isPassword
               ? IconButton(
                   icon: Icon(
                     _obscureText ? Icons.visibility_off_rounded : Icons.visibility_rounded,
-                    color: Colors.grey[400],
+                    color: themeProvider.subTextColor.withOpacity(0.4),
                     size: 20,
                   ),
                   onPressed: () => setState(() => _obscureText = !_obscureText),
@@ -354,7 +370,7 @@ class SimpleRoundedClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     Path path = Path();
-    path.lineTo(0, size.height - 60); // Lengkungan dimulai lebih rendah
+    path.lineTo(0, size.height - 60);
     path.quadraticBezierTo(
       size.width / 2,
       size.height,
