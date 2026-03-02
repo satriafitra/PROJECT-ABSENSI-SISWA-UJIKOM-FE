@@ -57,7 +57,7 @@ class _KalenderPageState extends State<KalenderPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFBFBFB),
+      backgroundColor: const Color.fromARGB(255, 247, 247, 247),
       body: Column(
         children: [
           Expanded(

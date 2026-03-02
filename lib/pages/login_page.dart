@@ -51,7 +51,7 @@ class _LoginPageState extends State<LoginPage> {
           isSuccess: true,
           title: 'LOGIN BERHASIL',
           // Kita buat pesan yang clean
-          message: ' $namaSiswa\nUnit Kelas: $kelasSiswa',
+          message: ' $namaSiswa\n $kelasSiswa',
           onConfirm: () {
             Navigator.pushReplacement(
               context,

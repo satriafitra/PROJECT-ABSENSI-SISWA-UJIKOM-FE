@@ -5,7 +5,7 @@ import '../models/attendance_model.dart';
 
 class AttendanceService {
   static const String baseUrl =
-      'https://19fb-202-46-68-130.ngrok-free.app/api'; // sama dengan ApiService
+      'https://0dd8-36-69-138-169.ngrok-free.app/api'; // sama dengan ApiService
 
   static Future<List<AttendanceModel>> fetchHistory() async {
     final studentId = Session.id;

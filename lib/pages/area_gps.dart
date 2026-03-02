@@ -20,7 +20,7 @@ class _AreaGpsPageState extends State<AreaGpsPage> {
   final Color surfaceWhite = Colors.white;
 
   static const LatLng _smkn1Cianjur = LatLng(-6.8265, 107.1367);
-  final double _radiusMeter = 60.0;
+  final double _radiusMeter = 120.0;
 
   String _statusMessage = "Menghitung Jarak...";
   String _distanceLabel = "0m";
