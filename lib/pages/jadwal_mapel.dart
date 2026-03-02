@@ -1,79 +1,77 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/theme_provider.dart';
 
 class JadwalMapelPage extends StatelessWidget {
   const JadwalMapelPage({super.key});
 
+  // Warna aksen tetap (branding)
   final Color orangeMain = const Color.fromARGB(255, 254, 111, 71);
   final Color orangeDeep = const Color(0xFFE65100);
   final Color orangeSoft = const Color(0xFFFFE0CC);
-  final Color bgLight = const Color(0xFFFBFBFB);
 
-// Update pada bagian AppBar agar lebih menyatu
   @override
   Widget build(BuildContext context) {
+    // Memanggil ThemeProvider
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
     return DefaultTabController(
       length: 5,
       child: Scaffold(
-        backgroundColor: bgLight,
+        // Latar belakang mengikuti tema
+        backgroundColor: themeProvider.bgWhite, 
         appBar: AppBar(
-          backgroundColor: bgLight,
+          backgroundColor: themeProvider.bgWhite,
           elevation: 0,
           centerTitle: true,
-          title: const Text(
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back_ios_new_rounded, color: themeProvider.textColor, size: 20),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: Text(
             "Jadwal Pelajaran",
             style: TextStyle(
               fontFamily: 'Poppins',
               fontWeight: FontWeight.bold,
-              color: Color(0xFF2D3142),
+              color: themeProvider.textColor, // Teks judul dinamis
               fontSize: 18,
             ),
           ),
-          // Bagian Day Picker diletakkan di bottom AppBar agar lebih rapi
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(70),
-            child: _buildDayPicker(),
+            child: _buildDayPicker(themeProvider),
           ),
         ),
         body: TabBarView(
           physics: const BouncingScrollPhysics(),
           children: [
-            _buildDailyList('Senin'),
-            _buildDailyList('Selasa'),
-            _buildDailyList('Rabu'),
-            _buildDailyList('Kamis'),
-            _buildDailyList('Jumat'),
+            _buildDailyList('Senin', themeProvider),
+            _buildDailyList('Selasa', themeProvider),
+            _buildDailyList('Rabu', themeProvider),
+            _buildDailyList('Kamis', themeProvider),
+            _buildDailyList('Jumat', themeProvider),
           ],
         ),
       ),
     );
   }
 
-  // Desain Day Picker yang lebih luwes dan tidak kaku
-  Widget _buildDayPicker() {
+  Widget _buildDayPicker(ThemeProvider themeProvider) {
     return Container(
-      height: 50,
+      height: 45,
       margin: const EdgeInsets.only(bottom: 15, left: 10, right: 10),
       child: TabBar(
         isScrollable: true,
-        // Menghilangkan garis bawah standar
         dividerColor: Colors.transparent,
-        // Memberi jarak antar tab agar tidak berdekatan
         labelPadding: const EdgeInsets.symmetric(horizontal: 8),
-        // Gaya teks saat terpilih
         labelColor: Colors.white,
         labelStyle: const TextStyle(
           fontFamily: 'Poppins',
           fontWeight: FontWeight.bold,
-          fontSize: 14,
+          fontSize: 13,
         ),
-        // Gaya teks saat tidak terpilih
-        unselectedLabelColor: Colors.grey[400],
-        unselectedLabelStyle: const TextStyle(
-          fontFamily: 'Poppins',
-          fontWeight: FontWeight.w500,
-          fontSize: 14,
-        ),
-        // Dekorasi background hari yang terpilih (Pill Shape)
+        // Warna teks saat tidak terpilih menyesuaikan mode
+        unselectedLabelColor: themeProvider.isDarkMode ? Colors.white38 : Colors.grey[400],
         indicator: BoxDecoration(
           borderRadius: BorderRadius.circular(25),
           gradient: LinearGradient(
@@ -89,48 +87,38 @@ class JadwalMapelPage extends StatelessWidget {
             ),
           ],
         ),
-        // Indikator diletakkan di belakang teks (TabIndicatorLocation)
         indicatorSize: TabBarIndicatorSize.tab,
         tabs: const [
-          Tab(
-              child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: Text("Senin"))),
-          Tab(
-              child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: Text("Selasa"))),
-          Tab(
-              child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: Text("Rabu"))),
-          Tab(
-              child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: Text("Kamis"))),
-          Tab(
-              child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: Text("Jumat"))),
+          Tab(child: Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: Text("Senin"))),
+          Tab(child: Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: Text("Selasa"))),
+          Tab(child: Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: Text("Rabu"))),
+          Tab(child: Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: Text("Kamis"))),
+          Tab(child: Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: Text("Jumat"))),
         ],
       ),
     );
   }
 
-  Widget _buildDailyList(String day) {
+  Widget _buildDailyList(String day, ThemeProvider themeProvider) {
     final schedule = _getScheduleData(day);
 
+    if (schedule.isEmpty) {
+      return Center(
+        child: Text("Tidak ada jadwal", style: TextStyle(color: themeProvider.subTextColor)),
+      );
+    }
+
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
       itemCount: schedule.length,
       itemBuilder: (context, index) {
         final item = schedule[index];
-        return _buildScheduleCard(item, index == schedule.length - 1);
+        return _buildScheduleCard(item, index == schedule.length - 1, themeProvider);
       },
     );
   }
 
-  Widget _buildScheduleCard(Map<String, dynamic> item, bool isLast) {
+  Widget _buildScheduleCard(Map<String, dynamic> item, bool isLast, ThemeProvider themeProvider) {
     bool isBreak = item['title'].toString().toLowerCase().contains('istirahat');
 
     return IntrinsicHeight(
@@ -140,19 +128,19 @@ class JadwalMapelPage extends StatelessWidget {
           Column(
             children: [
               Container(
-                width: 14,
-                height: 14,
+                width: 12,
+                height: 12,
                 decoration: BoxDecoration(
-                  color: isBreak ? Colors.grey[300] : orangeMain,
+                  color: isBreak ? (themeProvider.isDarkMode ? Colors.white24 : Colors.grey[300]) : orangeMain,
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 2),
+                  border: Border.all(color: themeProvider.cardColor, width: 2),
                 ),
               ),
               if (!isLast)
                 Expanded(
                   child: Container(
                     width: 2,
-                    color: orangeMain.withOpacity(0.2),
+                    color: orangeMain.withOpacity(themeProvider.isDarkMode ? 0.1 : 0.2),
                   ),
                 ),
             ],
@@ -163,16 +151,17 @@ class JadwalMapelPage extends StatelessWidget {
             child: Container(
               margin: const EdgeInsets.only(bottom: 20),
               decoration: BoxDecoration(
-                color: isBreak ? Colors.white.withOpacity(0.5) : Colors.white,
+                // Warna card mengikuti themeProvider
+                color: isBreak 
+                    ? (themeProvider.isDarkMode ? Colors.white.withOpacity(0.02) : Colors.grey[50]) 
+                    : themeProvider.cardColor,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: isBreak
-                      ? Colors.transparent
-                      : Colors.black.withOpacity(0.03),
+                  color: themeProvider.isDarkMode ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03),
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
+                    color: Colors.black.withOpacity(themeProvider.isDarkMode ? 0.2 : 0.03),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -182,12 +171,12 @@ class JadwalMapelPage extends StatelessWidget {
                 children: [
                   // Time Section
                   Container(
-                    width: 80,
-                    padding: const EdgeInsets.all(15),
+                    width: 75,
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: isBreak
-                          ? Colors.grey[100]
-                          : orangeSoft.withOpacity(0.3),
+                          ? (themeProvider.isDarkMode ? Colors.white.withOpacity(0.05) : Colors.grey[100])
+                          : orangeMain.withOpacity(themeProvider.isDarkMode ? 0.1 : 0.08),
                       borderRadius: const BorderRadius.only(
                         topLeft: Radius.circular(20),
                         bottomLeft: Radius.circular(20),
@@ -201,14 +190,13 @@ class JadwalMapelPage extends StatelessWidget {
                           style: TextStyle(
                             fontFamily: 'Poppins',
                             fontWeight: FontWeight.bold,
-                            color: orangeDeep,
-                            fontSize: 12,
+                            color: orangeMain,
+                            fontSize: 11,
                           ),
                         ),
                         Text(
                           "s/d",
-                          style:
-                              TextStyle(fontSize: 10, color: Colors.grey[400]),
+                          style: TextStyle(fontSize: 9, color: themeProvider.subTextColor.withOpacity(0.5)),
                         ),
                         Text(
                           item['time_end'],
@@ -216,7 +204,7 @@ class JadwalMapelPage extends StatelessWidget {
                             fontFamily: 'Poppins',
                             fontWeight: FontWeight.bold,
                             color: orangeMain,
-                            fontSize: 12,
+                            fontSize: 11,
                           ),
                         ),
                       ],
@@ -225,7 +213,7 @@ class JadwalMapelPage extends StatelessWidget {
                   // Content Section
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.all(15),
+                      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -236,17 +224,17 @@ class JadwalMapelPage extends StatelessWidget {
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
                               color: isBreak
-                                  ? Colors.grey[600]
-                                  : const Color(0xFF2D3142),
+                                  ? themeProvider.subTextColor
+                                  : themeProvider.textColor,
                             ),
                           ),
                           if (!isBreak) ...[
                             const SizedBox(height: 6),
                             Row(
                               children: [
-                                Icon(Icons.person,
+                                Icon(Icons.person_outline_rounded,
                                     size: 14,
-                                    color: orangeMain.withOpacity(0.5)),
+                                    color: themeProvider.subTextColor.withOpacity(0.6)),
                                 const SizedBox(width: 5),
                                 Expanded(
                                   child: Text(
@@ -254,7 +242,7 @@ class JadwalMapelPage extends StatelessWidget {
                                     style: TextStyle(
                                       fontFamily: 'Poppins',
                                       fontSize: 11,
-                                      color: Colors.grey[600],
+                                      color: themeProvider.subTextColor,
                                     ),
                                   ),
                                 ),
@@ -263,9 +251,9 @@ class JadwalMapelPage extends StatelessWidget {
                             const SizedBox(height: 4),
                             Row(
                               children: [
-                                Icon(Icons.location_on,
+                                Icon(Icons.location_on_outlined,
                                     size: 14,
-                                    color: orangeMain.withOpacity(0.5)),
+                                    color: orangeMain.withOpacity(0.7)),
                                 const SizedBox(width: 5),
                                 Text(
                                   item['room'],
@@ -279,8 +267,11 @@ class JadwalMapelPage extends StatelessWidget {
                               ],
                             ),
                           ] else
-                            Icon(Icons.coffee_rounded,
-                                size: 18, color: Colors.grey[400]),
+                            Padding(
+                              padding: const EdgeInsets.only(top: 5),
+                              child: Icon(Icons.coffee_rounded,
+                                  size: 16, color: themeProvider.subTextColor.withOpacity(0.3)),
+                            ),
                         ],
                       ),
                     ),

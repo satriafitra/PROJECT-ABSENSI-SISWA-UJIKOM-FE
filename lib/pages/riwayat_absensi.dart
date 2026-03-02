@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart'; // Wajib untuk tema
+import '../providers/theme_provider.dart'; // Sesuaikan path provider Anda
 import '../utils/session.dart';
 import '../services/attendance_services.dart';
 import '../models/attendance_model.dart';
@@ -21,43 +23,33 @@ class RiwayatAbsensiPage extends StatefulWidget {
 }
 
 class _RiwayatAbsensiPageState extends State<RiwayatAbsensiPage> {
-  String selectedFilter = "Semua"; // Default filter
-  // Tambahkan "Hari Ini" di daftar filter
+  String selectedFilter = "Semua";
   final List<String> filters = ["Semua", "Hari Ini", "Minggu Ini", "Bulan Lalu"];
 
-  // Fungsi Logika Filter
   List<AttendanceModel> filterData(List<AttendanceModel> data) {
     DateTime now = DateTime.now();
-    // Normalize today untuk perbandingan (jam 00:00:00)
     DateTime today = DateTime(now.year, now.month, now.day);
 
     if (selectedFilter == "Hari Ini") {
       return data.where((item) {
         DateTime? itemDate = DateTime.tryParse(item.date);
         if (itemDate == null) return false;
-        // Cek apakah tahun, bulan, dan hari sama
         return itemDate.year == today.year &&
                itemDate.month == today.month &&
                itemDate.day == today.day;
       }).toList();
     } 
-    
     else if (selectedFilter == "Minggu Ini") {
-      // Cari awal minggu (Senin)
       DateTime startOfWeek = now.subtract(Duration(days: now.weekday - 1));
       startOfWeek = DateTime(startOfWeek.year, startOfWeek.month, startOfWeek.day);
-      
       return data.where((item) {
         DateTime? itemDate = DateTime.tryParse(item.date);
         return itemDate != null && itemDate.isAfter(startOfWeek.subtract(const Duration(seconds: 1)));
       }).toList();
     } 
-    
     else if (selectedFilter == "Bulan Lalu") {
-      // Cari awal dan akhir bulan lalu
       DateTime firstDayLastMonth = DateTime(now.year, now.month - 1, 1);
       DateTime lastDayLastMonth = DateTime(now.year, now.month, 0, 23, 59, 59);
-      
       return data.where((item) {
         DateTime? itemDate = DateTime.tryParse(item.date);
         return itemDate != null && 
@@ -65,21 +57,22 @@ class _RiwayatAbsensiPageState extends State<RiwayatAbsensiPage> {
                itemDate.isBefore(lastDayLastMonth.add(const Duration(seconds: 1)));
       }).toList();
     }
-    
-    return data; // "Semua"
+    return data;
   }
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: themeProvider.bgWhite, // Dinamis
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
           child: CircleAvatar(
-            backgroundColor: Colors.white,
+            backgroundColor: themeProvider.cardColor, // Dinamis
             child: IconButton(
               icon: const Icon(Icons.arrow_back_ios_new,
                   color: Color(0xFFFF5722), size: 18),
@@ -110,8 +103,6 @@ class _RiwayatAbsensiPageState extends State<RiwayatAbsensiPage> {
               itemCount: filters.length,
               itemBuilder: (context, index) {
                 bool isSelected = selectedFilter == filters[index];
-                
-                // Pilih icon berdasarkan filter
                 IconData filterIcon;
                 switch (filters[index]) {
                   case "Hari Ini": filterIcon = Icons.today; break;
@@ -121,42 +112,28 @@ class _RiwayatAbsensiPageState extends State<RiwayatAbsensiPage> {
                 }
 
                 return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      selectedFilter = filters[index];
-                    });
-                  },
+                  onTap: () => setState(() => selectedFilter = filters[index]),
                   child: Container(
                     margin: const EdgeInsets.only(right: 12),
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     decoration: BoxDecoration(
-                      color: isSelected ? const Color(0xFFFF5722) : Colors.white,
+                      color: isSelected ? const Color(0xFFFF5722) : themeProvider.cardColor,
                       borderRadius: BorderRadius.circular(30),
                       boxShadow: isSelected
-                          ? [
-                              BoxShadow(
-                                color: const Color(0xFFFF5722).withOpacity(0.3),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              )
-                            ]
+                          ? [BoxShadow(color: const Color(0xFFFF5722).withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))]
                           : [],
                       border: Border.all(
-                        color: isSelected ? Colors.transparent : Colors.grey.shade300,
+                        color: isSelected ? Colors.transparent : themeProvider.subTextColor.withOpacity(0.1),
                       ),
                     ),
                     child: Row(
                       children: [
-                        Icon(
-                          filterIcon,
-                          size: 16,
-                          color: isSelected ? Colors.white : Colors.grey,
-                        ),
+                        Icon(filterIcon, size: 16, color: isSelected ? Colors.white : themeProvider.subTextColor),
                         const SizedBox(width: 8),
                         Text(
                           filters[index],
                           style: TextStyle(
-                            color: isSelected ? Colors.white : Colors.grey.shade700,
+                            color: isSelected ? Colors.white : themeProvider.textColor,
                             fontWeight: FontWeight.bold,
                             fontSize: 13,
                           ),
@@ -179,34 +156,28 @@ class _RiwayatAbsensiPageState extends State<RiwayatAbsensiPage> {
                 }
 
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(
-                    child: Text(
-                      'Belum ada riwayat absensi',
-                      style: TextStyle(color: Colors.grey),
-                    ),
+                  return Center(
+                    child: Text('Belum ada riwayat absensi', style: TextStyle(color: themeProvider.subTextColor)),
                   );
                 }
 
-                // Terapkan fungsi filter
                 final filteredList = filterData(snapshot.data!);
 
                 if (filteredList.isEmpty) {
-                  return const Center(
-                    child: Text(
-                      'Tidak ada data untuk filter ini',
-                      style: TextStyle(color: Colors.grey),
-                    ),
+                  return Center(
+                    child: Text('Tidak ada data untuk filter ini', style: TextStyle(color: themeProvider.subTextColor)),
                   );
                 }
 
                 return ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 120),
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
                   itemCount: filteredList.length,
                   itemBuilder: (context, index) {
                     return AttendanceItem(
                       status: filteredList[index].status,
                       date: filteredList[index].date,
                       guruName: filteredList[index].guruName ?? '-',
+                      themeProvider: themeProvider, // Pass theme
                     );
                   },
                 );
@@ -223,12 +194,14 @@ class AttendanceItem extends StatelessWidget {
   final String status;
   final String date;
   final String guruName;
+  final ThemeProvider themeProvider;
 
   const AttendanceItem({
     super.key,
     required this.status,
     required this.date,
     required this.guruName,
+    required this.themeProvider,
   });
 
   @override
@@ -237,12 +210,10 @@ class AttendanceItem extends StatelessWidget {
     final kelas = Session.studentClass ?? '-';
 
     final formattedDate = DateTime.tryParse(date) != null
-        ? DateFormat('EEEE, dd MMMM yyyy', 'id_ID')
-            .format(DateTime.parse(date))
+        ? DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(DateTime.parse(date))
         : date;
 
     return InkWell(
-      borderRadius: BorderRadius.circular(25),
       onTap: () {
         Navigator.push(
           context,
@@ -262,13 +233,12 @@ class AttendanceItem extends StatelessWidget {
             padding: const EdgeInsets.only(left: 5, bottom: 10, top: 10),
             child: Row(
               children: [
-                const Icon(Icons.access_time_filled_rounded,
-                    size: 16, color: Colors.grey),
+                Icon(Icons.access_time_filled_rounded, size: 16, color: themeProvider.subTextColor.withOpacity(0.6)),
                 const SizedBox(width: 6),
                 Text(
                   formattedDate,
                   style: TextStyle(
-                    color: Colors.grey.shade600,
+                    color: themeProvider.subTextColor,
                     fontWeight: FontWeight.w700,
                     fontSize: 13,
                   ),
@@ -279,15 +249,18 @@ class AttendanceItem extends StatelessWidget {
           Container(
             height: 100,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: themeProvider.cardColor, // Dinamis
               borderRadius: BorderRadius.circular(25),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
+                  color: Colors.black.withOpacity(themeProvider.isDarkMode ? 0.3 : 0.06),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
               ],
+              border: themeProvider.isDarkMode 
+                ? Border.all(color: Colors.white.withOpacity(0.05)) 
+                : null,
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(25),
@@ -297,23 +270,15 @@ class AttendanceItem extends StatelessWidget {
                     children: [
                       Container(
                         width: 85,
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
                             colors: [Color(0xFFFF8A65), Color(0xFFFF5722)],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(25),
-                            bottomLeft: Radius.circular(25),
-                          ),
                         ),
                         child: const Center(
-                          child: Icon(
-                            Icons.check_circle_rounded,
-                            color: Colors.white,
-                            size: 34,
-                          ),
+                          child: Icon(Icons.check_circle_rounded, color: Colors.white, size: 34),
                         ),
                       ),
                       const SizedBox(width: 15),
@@ -334,23 +299,22 @@ class AttendanceItem extends StatelessWidget {
                             Row(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: Colors.grey.shade100,
+                                    color: themeProvider.isDarkMode ? Colors.white10 : Colors.grey.shade100,
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
                                     kelas,
-                                    style: const TextStyle(
-                                      color: Colors.black54,
+                                    style: TextStyle(
+                                      color: themeProvider.textColor.withOpacity(0.7),
                                       fontSize: 11,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
-                                StatusBadge(status: status.toUpperCase()),
+                                StatusBadge(status: status.toUpperCase(), isDarkMode: themeProvider.isDarkMode),
                               ],
                             ),
                           ],
@@ -361,13 +325,16 @@ class AttendanceItem extends StatelessWidget {
                   Positioned(
                     right: -10,
                     bottom: -5,
-                    child: Transform.scale(
-                      scaleX: -1,
-                      child: Image.asset(
-                        'lib/images/char.png',
-                        height: 95,
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) => const SizedBox(), 
+                    child: Opacity(
+                      opacity: themeProvider.isDarkMode ? 0.8 : 1.0, // Sedikit redup di dark mode
+                      child: Transform.scale(
+                        scaleX: -1,
+                        child: Image.asset(
+                          'lib/images/char.png',
+                          height: 95,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) => const SizedBox(), 
+                        ),
                       ),
                     ),
                   ),
@@ -377,7 +344,7 @@ class AttendanceItem extends StatelessWidget {
           ),
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-            child: Divider(color: Color(0x33FF7A50), thickness: 1),
+            child: Divider(color: Color(0x11FF7A50), thickness: 1), // Divider lebih samar
           ),
         ],
       ),
@@ -387,7 +354,8 @@ class AttendanceItem extends StatelessWidget {
 
 class StatusBadge extends StatelessWidget {
   final String status;
-  const StatusBadge({super.key, required this.status});
+  final bool isDarkMode;
+  const StatusBadge({super.key, required this.status, required this.isDarkMode});
 
   @override
   Widget build(BuildContext context) {
@@ -396,16 +364,16 @@ class StatusBadge extends StatelessWidget {
 
     switch (status) {
       case 'HADIR':
-        bgColor = const Color(0xFFE8F5E9);
-        textColor = Colors.green.shade700;
+        bgColor = isDarkMode ? Colors.green.withOpacity(0.15) : const Color(0xFFE8F5E9);
+        textColor = isDarkMode ? Colors.greenAccent : Colors.green.shade700;
         break;
       case 'SAKIT':
-        bgColor = const Color(0xFFFFFDE7);
-        textColor = Colors.orange.shade800;
+        bgColor = isDarkMode ? Colors.orange.withOpacity(0.15) : const Color(0xFFFFFDE7);
+        textColor = isDarkMode ? Colors.orangeAccent : Colors.orange.shade800;
         break;
       default:
-        bgColor = const Color(0xFFFFEBEE);
-        textColor = Colors.red.shade700;
+        bgColor = isDarkMode ? Colors.red.withOpacity(0.15) : const Color(0xFFFFEBEE);
+        textColor = isDarkMode ? Colors.redAccent : Colors.red.shade700;
     }
 
     return Container(
@@ -413,7 +381,7 @@ class StatusBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: textColor.withOpacity(0.1)),
+        border: Border.all(color: textColor.withOpacity(0.2)),
       ),
       child: Text(
         status,

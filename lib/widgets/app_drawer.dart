@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart'; // Wajib ditambahkan
 import 'package:quickalert/quickalert.dart';
 import '../utils/session.dart';
 import '../pages/login_page.dart';
 import '../pages/area_gps.dart';
 import '../pages/pengaturan.dart';
+import '../pages/riwayat_absensi.dart'; // Sesuaikan path riwayat absensi Anda
+import '../providers/theme_provider.dart'; // Sesuaikan path provider Anda
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
 
-  // --- Orange Elegance Palette ---
-  static const Color primaryOrange =
-      Color(0xFFFF6B35); // Warna utama (Strong Orange)
-  static const Color lightOrange = Color(0xFFFFF4F0); // Background menu aktif
-  static const Color accentOrange = Color(0xFFFF9F67); // Gradasi soft
-  static const Color darkGrey = Color(0xFF454545);
+  // --- Orange Palette ---
+  static const Color primaryOrange = Color(0xFFFF6B35);
+  static const Color accentOrange = Color(0xFFFF9F67);
 
   void _handleLogout(BuildContext context) {
     QuickAlert.show(
@@ -38,8 +38,11 @@ class AppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Mengambil state tema
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
     return Drawer(
-      backgroundColor: Colors.white,
+      backgroundColor: themeProvider.cardColor, // Menggunakan warna kartu (putih/abu gelap)
       elevation: 10,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
@@ -49,7 +52,7 @@ class AppDrawer extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Header dengan Gradasi Orange Modern
+          // Header tetap menggunakan gradasi orange agar konsisten
           _buildHeader(context),
 
           const SizedBox(height: 15),
@@ -61,38 +64,45 @@ class AppDrawer extends StatelessWidget {
               children: [
                 _buildMenuItem(
                   context,
+                  themeProvider: themeProvider,
                   icon: Icons.dashboard_customize_rounded,
                   title: "Beranda",
-                  isSelected: true, // Menandakan sedang di halaman ini
+                  isSelected: true,
                   onTap: () => Navigator.pop(context),
                 ),
                 _buildMenuItem(
                   context,
+                  themeProvider: themeProvider,
                   icon: Icons.assignment_turned_in_rounded,
                   title: "Riwayat Absensi",
-                  onTap: () {},
-                ),
-                _buildMenuItem(
-                  context,
-                  icon: Icons.location_on_rounded, // Icon GPS Modern
-                  title: "Area Absensi",
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                          builder: (context) => const AreaGpsPage()),
+                      MaterialPageRoute(builder: (context) => const RiwayatAbsensiPage()),
                     );
                   },
                 ),
                 _buildMenuItem(
                   context,
+                  themeProvider: themeProvider,
+                  icon: Icons.location_on_rounded,
+                  title: "Area Absensi",
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const AreaGpsPage()),
+                    );
+                  },
+                ),
+                _buildMenuItem(
+                  context,
+                  themeProvider: themeProvider,
                   icon: Icons.settings_suggest_rounded,
                   title: "Pengaturan",
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                          builder: (context) => const SettingsPage()),
+                      MaterialPageRoute(builder: (context) => const SettingsPage()),
                     );
                   },
                 ),
@@ -100,15 +110,15 @@ class AppDrawer extends StatelessWidget {
             ),
           ),
 
-          // Divider halus sebelum logout
           Divider(
-              color: Colors.grey.withOpacity(0.1),
-              thickness: 1,
-              indent: 20,
-              endIndent: 20),
+            color: themeProvider.isDarkMode ? Colors.white10 : Colors.black.withOpacity(0.05),
+            thickness: 1,
+            indent: 20,
+            endIndent: 20,
+          ),
 
           // Logout Button
-          _buildLogoutButton(context),
+          _buildLogoutButton(context, themeProvider),
         ],
       ),
     );
@@ -131,7 +141,6 @@ class AppDrawer extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Profile Picture Ring
           Container(
             padding: const EdgeInsets.all(3),
             decoration: const BoxDecoration(
@@ -145,7 +154,6 @@ class AppDrawer extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 15),
-          // User Info
           Text(
             Session.studentName ?? 'Siswa Aktif',
             style: const TextStyle(
@@ -158,8 +166,7 @@ class AppDrawer extends StatelessWidget {
           const SizedBox(height: 5),
           Row(
             children: [
-              Icon(Icons.badge_outlined,
-                  size: 14, color: Colors.white.withOpacity(0.8)),
+              Icon(Icons.badge_outlined, size: 14, color: Colors.white.withOpacity(0.8)),
               const SizedBox(width: 5),
               Text(
                 Session.nisn ?? 'NISN Tidak Tersedia',
@@ -178,28 +185,34 @@ class AppDrawer extends StatelessWidget {
 
   Widget _buildMenuItem(
     BuildContext context, {
+    required ThemeProvider themeProvider, // Tambahkan parameter provider
     required IconData icon,
     required String title,
     required VoidCallback onTap,
     bool isSelected = false,
   }) {
+    // Warna background menu saat aktif (di Dark Mode dibuat lebih redup)
+    final Color selectedBg = themeProvider.isDarkMode 
+        ? primaryOrange.withOpacity(0.15) 
+        : const Color(0xFFFFF4F0);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         onTap: onTap,
         selected: isSelected,
-        selectedTileColor: lightOrange,
+        selectedTileColor: selectedBg,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
         ),
         leading: Icon(
           icon,
-          color: isSelected ? primaryOrange : Colors.grey[600],
+          color: isSelected ? primaryOrange : themeProvider.subTextColor,
         ),
         title: Text(
           title,
           style: TextStyle(
-            color: isSelected ? primaryOrange : Colors.grey[800],
+            color: isSelected ? primaryOrange : themeProvider.textColor,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
             fontSize: 15,
           ),
@@ -208,7 +221,7 @@ class AppDrawer extends StatelessWidget {
     );
   }
 
-  Widget _buildLogoutButton(BuildContext context) {
+  Widget _buildLogoutButton(BuildContext context, ThemeProvider themeProvider) {
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Material(
@@ -220,14 +233,15 @@ class AppDrawer extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(15),
-              border: Border.all(color: Colors.red.withOpacity(0.2)),
+              border: Border.all(
+                color: themeProvider.isDarkMode ? Colors.redAccent.withOpacity(0.3) : Colors.red.withOpacity(0.2),
+              ),
               color: Colors.red.withOpacity(0.05),
             ),
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.power_settings_new_rounded,
-                    color: Colors.redAccent, size: 20),
+                Icon(Icons.power_settings_new_rounded, color: Colors.redAccent, size: 20),
                 SizedBox(width: 10),
                 Text(
                   "Keluar Aplikasi",
