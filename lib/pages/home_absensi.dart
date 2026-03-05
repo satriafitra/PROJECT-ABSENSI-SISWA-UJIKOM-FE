@@ -6,6 +6,7 @@ import '../providers/theme_provider.dart';
 import '../widgets/schedule_card.dart';
 import '../widgets/week_status.dart';
 import '../services/api_services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -128,6 +129,11 @@ class _HomePageState extends State<HomePage> {
                   width: double.infinity,
                   height: 55,
                   child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: orangeMain,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
+                    ),
                     onPressed: _isSubmitting
                         ? null
                         : () async {
@@ -135,7 +141,7 @@ class _HomePageState extends State<HomePage> {
                               QuickAlert.show(
                                 context: context,
                                 type: QuickAlertType.warning,
-                                text: 'Alasan tidak boleh kosong!',
+                                text: 'Keterangan tidak boleh kosong!',
                                 confirmBtnColor: orangeMain,
                               );
                               return;
@@ -143,44 +149,51 @@ class _HomePageState extends State<HomePage> {
 
                             setModalState(() => _isSubmitting = true);
 
-                            final response =
-                                await ApiService.submitManualAttendance(
-                              studentId: 1, // ID Siswa
-                              status: selectedType,
-                              keterangan: reasonController.text,
-                            );
+                            try {
+                              // Ambil ID dari SharedPreferences
+                              final prefs =
+                                  await SharedPreferences.getInstance();
+                              // Sesuaikan 'user_id' dengan key yang kamu gunakan saat login
+                              int currentStudentId =
+                                  prefs.getInt('user_id') ?? 0;
 
-                            setModalState(() => _isSubmitting = false);
+                              final response =
+                                  await ApiService.submitManualAttendance(
+                                studentId: currentStudentId,
+                                status: selectedType.toLowerCase(),
+                                keterangan: reasonController.text,
+                              );
 
-                            if (response['status'] == true) {
-                              Navigator.pop(context); // Tutup form manual
+                              setModalState(() => _isSubmitting = false);
 
-                              // Alert Sukses
-                              QuickAlert.show(
+                              if (response['status'] == true) {
+                                Navigator.pop(context); // Tutup BottomSheet
+                                QuickAlert.show(
                                   context: context,
                                   type: QuickAlertType.success,
                                   title: 'Berhasil!',
                                   text: response['message'],
                                   confirmBtnColor: orangeMain,
-                                  onConfirmBtnTap: () {
-                                    Navigator.pop(context); // Tutup alert
-                                  });
-                            } else {
-                              // Alert Gagal/Error
+                                );
+                              } else {
+                                QuickAlert.show(
+                                  context: context,
+                                  type: QuickAlertType.error,
+                                  title: 'Gagal',
+                                  text: response['message'],
+                                  confirmBtnColor: Colors.red,
+                                );
+                              }
+                            } catch (e) {
+                              setModalState(() => _isSubmitting = false);
                               QuickAlert.show(
                                 context: context,
                                 type: QuickAlertType.error,
-                                title: 'Oops...',
-                                text: response['message'],
+                                text: 'Terjadi kesalahan sistem',
                                 confirmBtnColor: Colors.red,
                               );
                             }
                           },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: orangeMain,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
-                    ),
                     child: _isSubmitting
                         ? const SizedBox(
                             width: 24,
