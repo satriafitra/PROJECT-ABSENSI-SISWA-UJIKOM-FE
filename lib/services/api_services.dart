@@ -3,7 +3,8 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String baseUrl = 'https://generous-dragon-previously.ngrok-free.app/api';
+  static const String baseUrl =
+      'https://generous-dragon-previously.ngrok-free.app/api';
 
   // Helper untuk Headers agar tidak menulis berulang kali
   static Map<String, String> _headers() => {
@@ -12,7 +13,8 @@ class ApiService {
       };
 
   // ================= LOGIN SISWA =================
-  static Future<Map<String, dynamic>> loginSiswa(String nisn, String password) async {
+  static Future<Map<String, dynamic>> loginSiswa(
+      String nisn, String password) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/login-siswa'),
@@ -60,7 +62,8 @@ class ApiService {
   }
 
   // ================= RIWAYAT ABSENSI =================
-  static Future<Map<String, dynamic>> fetchAttendanceHistory(int studentId) async {
+  static Future<Map<String, dynamic>> fetchAttendanceHistory(
+      int studentId) async {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/attendance/$studentId'),
@@ -81,11 +84,34 @@ class ApiService {
       } else {
         return {
           'status': false,
-          'message': body['message'] ?? 'Terjadi kesalahan server (${response.statusCode})',
+          'message': body['message'] ??
+              'Terjadi kesalahan server (${response.statusCode})',
         };
       }
     } catch (e) {
       return {'status': false, 'message': 'Gagal memproses data dari server'};
+    }
+  }
+
+  // ================= ABSENSI MANUAL (IZIN/SAKIT) =================
+  static Future<Map<String, dynamic>> submitManualAttendance({
+    required int studentId,
+    required String status,
+    required String keterangan,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/absen-manual'),
+        headers: _headers(),
+        body: jsonEncode({
+          'student_id': studentId,
+          'status': status.toLowerCase(), // agar seragam 'sakit' atau 'izin'
+          'keterangan': keterangan,
+        }),
+      );
+      return _processResponse(response);
+    } catch (e) {
+      return {'status': false, 'message': 'Terjadi kesalahan: $e'};
     }
   }
 }

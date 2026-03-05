@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../utils/session.dart';
 import 'package:intl/intl.dart';
+import '../providers/theme_provider.dart'; // Pastikan path benar
 
 class DetailAbsensiPage extends StatelessWidget {
   final String date;
@@ -16,11 +18,13 @@ class DetailAbsensiPage extends StatelessWidget {
 
   // Skema Warna Premium Sunset Orange
   static const Color primaryOrange = Color(0xFFF4511E);
-  static const Color accentOrange = Color(0xFFFF8A65);
   static const Color lightOrangeBg = Color(0xFFFFF3E0);
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+
     final formattedDate = DateTime.tryParse(date) != null
         ? DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(DateTime.parse(date))
         : date;
@@ -28,26 +32,27 @@ class DetailAbsensiPage extends StatelessWidget {
     String initials = (Session.studentName ?? 'S').split(' ').map((e) => e[0]).take(2).join();
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
       body: Stack(
         children: [
-          // Background Gradient Header dengan Ornamen
+          // Background Gradient Header
           Container(
             height: 240,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [primaryOrange, Color(0xFFFF8F00)],
+                colors: isDark 
+                  ? [const Color(0xFFBF360C), const Color(0xFFE65100)] // Lebih redup saat dark
+                  : [primaryOrange, const Color(0xFFFF8F00)],
               ),
-              borderRadius: BorderRadius.only(
+              borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(40),
                 bottomRight: Radius.circular(40),
               ),
             ),
             child: Stack(
               children: [
-                // Ornamen Lingkaran Transparan agar lebih mewah
                 Positioned(
                   top: -50,
                   right: -50,
@@ -110,7 +115,7 @@ class DetailAbsensiPage extends StatelessWidget {
                         ),
                         child: CircleAvatar(
                           radius: 32,
-                          backgroundColor: Colors.white,
+                          backgroundColor: isDark ? const Color(0xFF333333) : Colors.white,
                           child: Text(
                             initials,
                             style: const TextStyle(
@@ -141,46 +146,61 @@ class DetailAbsensiPage extends StatelessWidget {
                     width: double.infinity,
                     margin: const EdgeInsets.only(top: 15),
                     padding: const EdgeInsets.fromLTRB(24, 30, 24, 10),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFFDFDFD),
-                      borderRadius: BorderRadius.only(
+                    decoration: BoxDecoration(
+                      color: themeProvider.bgWhite, // Adaptif (Putih / Abu gelap)
+                      borderRadius: const BorderRadius.only(
                         topLeft: Radius.circular(35),
                         topRight: Radius.circular(35),
                       ),
+                      boxShadow: isDark ? [] : [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 20,
+                          offset: const Offset(0, -5),
+                        )
+                      ],
                     ),
                     child: SingleChildScrollView(
                       physics: const BouncingScrollPhysics(),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _sectionTitle('INFORMASI AKADEMIK'),
+                          _sectionTitle('INFORMASI AKADEMIK', isDark),
                           _buildModernCard(
                             label: 'Kelas',
                             value: Session.studentClass ?? '-',
                             icon: Icons.class_outlined,
+                            isDark: isDark,
+                            textColor: themeProvider.textColor,
                           ),
                           const SizedBox(height: 20),
-                          _sectionTitle('RINCIAN KEHADIRAN'),
+                          _sectionTitle('RINCIAN KEHADIRAN', isDark),
                           _buildModernCard(
                             label: 'Tanggal',
                             value: formattedDate,
                             icon: Icons.calendar_today_outlined,
+                            isDark: isDark,
+                            textColor: themeProvider.textColor,
                           ),
                           _buildModernCard(
                             label: 'Status Absensi',
                             value: status.toUpperCase(),
                             icon: Icons.verified_user_outlined,
                             isStatus: true,
+                            isDark: isDark,
+                            textColor: themeProvider.textColor,
                           ),
                           _buildModernCard(
                             label: 'Guru Pengabsen',
                             value: guruName,
                             icon: Icons.edit_note_rounded,
                             isLast: true,
+                            isDark: isDark,
+                            textColor: themeProvider.textColor,
                           ),
                           const SizedBox(height: 35),
                           
-                          // Action Button (FIX WARNA TEKS)
+                          // Action Button
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton.icon(
@@ -196,12 +216,12 @@ class DetailAbsensiPage extends StatelessWidget {
                               ),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: primaryOrange,
-                                foregroundColor: Colors.white, // INI PERBAIKANNYA
+                                foregroundColor: Colors.white,
                                 padding: const EdgeInsets.symmetric(vertical: 18),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(20),
                                 ),
-                                elevation: 6,
+                                elevation: isDark ? 0 : 6,
                                 shadowColor: primaryOrange.withOpacity(0.5),
                               ),
                             ),
@@ -220,13 +240,13 @@ class DetailAbsensiPage extends StatelessWidget {
     );
   }
 
-  Widget _sectionTitle(String title) {
+  Widget _sectionTitle(String title, bool isDark) {
     return Padding(
       padding: const EdgeInsets.only(left: 4, bottom: 12),
       child: Text(
         title,
         style: TextStyle(
-          color: Colors.grey.shade400,
+          color: isDark ? Colors.white38 : Colors.grey.shade400,
           fontSize: 11,
           fontWeight: FontWeight.w900,
           letterSpacing: 1.5,
@@ -239,13 +259,15 @@ class DetailAbsensiPage extends StatelessWidget {
     required String label,
     required String value,
     required IconData icon,
+    required bool isDark,
+    required Color textColor,
     bool isStatus = false,
     bool isLast = false,
   }) {
     Color getStatusColor() {
-      if (!isStatus) return Colors.black;
-      if (value.contains('HADIR')) return Colors.green.shade700;
-      if (value.contains('ALFA')) return Colors.red.shade700;
+      if (!isStatus) return textColor;
+      if (value.contains('HADIR')) return Colors.green.shade400;
+      if (value.contains('ALFA')) return Colors.red.shade400;
       return primaryOrange;
     }
 
@@ -253,10 +275,10 @@ class DetailAbsensiPage extends StatelessWidget {
       margin: EdgeInsets.only(bottom: isLast ? 0 : 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF252525) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade50),
-        boxShadow: [
+        border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade50),
+        boxShadow: isDark ? [] : [
           BoxShadow(
             color: Colors.black.withOpacity(0.03),
             blurRadius: 10,
@@ -269,7 +291,9 @@ class DetailAbsensiPage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: isStatus ? getStatusColor().withOpacity(0.08) : lightOrangeBg.withOpacity(0.5),
+              color: isStatus 
+                ? getStatusColor().withOpacity(0.1) 
+                : (isDark ? Colors.white.withOpacity(0.05) : lightOrangeBg.withOpacity(0.5)),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: isStatus ? getStatusColor() : primaryOrange, size: 22),
@@ -281,7 +305,11 @@ class DetailAbsensiPage extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: TextStyle(color: Colors.grey.shade500, fontSize: 10, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: isDark ? Colors.white38 : Colors.grey.shade500, 
+                    fontSize: 10, 
+                    fontWeight: FontWeight.bold
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
