@@ -272,7 +272,7 @@ class AttendanceItem extends StatelessWidget {
                         width: 85,
                         decoration: const BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [Color(0xFFFF8A65), Color(0xFFFF5722)],
+                            colors: [Color.fromARGB(255, 255, 113, 70), Color.fromARGB(255, 255, 66, 8)],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
