@@ -5,6 +5,7 @@ import '../services/api_services.dart';
 import '../utils/session.dart';
 import '../widgets/alert.dart';
 import '../providers/theme_provider.dart'; // Pastikan path provider benar
+import 'package:shared_preferences/shared_preferences.dart'; // Untuk menyimpan data login secara spesifik
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -13,7 +14,8 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixin {
+class _LoginPageState extends State<LoginPage>
+    with SingleTickerProviderStateMixin {
   bool _obscureText = true;
   bool _loading = false;
   late AnimationController _controller;
@@ -63,6 +65,13 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
       final response = await ApiService.loginSiswa(nisn, password);
       if (response['status'] == 'success') {
         await Session.saveLogin(response['data']);
+
+        // 2. TAMBAHKAN INI: Simpan ID dan Nama secara spesifik agar mudah dipanggil
+        final prefs = await SharedPreferences.getInstance();
+        // Pastikan 'id' dan 'name' sesuai dengan key JSON dari API Laravel Anda
+        await prefs.setInt('user_id', response['data']['id']);
+        await prefs.setString('user_name', response['data']['name']);
+
         if (!mounted) return;
 
         final String namaSiswa = response['data']['name'] ?? 'Siswa';
@@ -82,11 +91,12 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
         );
       } else {
         if (!mounted) return;
-         CoolAlert.show(
+        CoolAlert.show(
           context: context,
           isSuccess: false,
           title: 'Gagal Login',
-          message: response['message'] ?? 'Periksa kembali NISN dan Password kamu.',
+          message:
+              response['message'] ?? 'Periksa kembali NISN dan Password kamu.',
         );
       }
     } catch (e) {
@@ -126,20 +136,24 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                       gradient: LinearGradient(
                         begin: Alignment.topRight,
                         end: Alignment.bottomLeft,
-                        colors: isDark 
-                          ? [const Color(0xFFE65100), const Color(0xFFBF360C)] // Lebih Deep saat Dark
-                          : [const Color(0xFFFF8E62), const Color(0xFFE65100)],
+                        colors: isDark
+                            ? [
+                                const Color(0xFFE65100),
+                                const Color(0xFFBF360C)
+                              ] // Lebih Deep saat Dark
+                            : [
+                                const Color(0xFFFF8E62),
+                                const Color(0xFFE65100)
+                              ],
                       ),
                     ),
                   ),
                 ),
-                
                 Positioned(
                   top: -20,
                   right: -20,
                   child: _buildCircle(180, Colors.white.withOpacity(0.08)),
                 ),
-
                 Column(
                   children: [
                     const SizedBox(height: 60),
@@ -152,7 +166,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: Colors.white.withOpacity(0.15),
-                          border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
+                          border: Border.all(
+                              color: Colors.white.withOpacity(0.3), width: 1),
                         ),
                         child: Image.asset(
                           'lib/images/logo-absen.png',
@@ -236,14 +251,18 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                           borderRadius: BorderRadius.circular(18),
                         ),
                       ).copyWith(
-                        shadowColor: WidgetStateProperty.all(const Color(0xFFE65100).withOpacity(isDark ? 0.2 : 0.4)),
-                        elevation: WidgetStateProperty.resolveWith((states) => states.contains(WidgetState.pressed) ? 2 : 6),
+                        shadowColor: WidgetStateProperty.all(
+                            const Color(0xFFE65100)
+                                .withOpacity(isDark ? 0.2 : 0.4)),
+                        elevation: WidgetStateProperty.resolveWith((states) =>
+                            states.contains(WidgetState.pressed) ? 2 : 6),
                       ),
                       child: _loading
                           ? const SizedBox(
                               height: 24,
                               width: 24,
-                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
+                              child: CircularProgressIndicator(
+                                  color: Colors.white, strokeWidth: 3),
                             )
                           : const Text(
                               "SIGN IN",
@@ -331,29 +350,32 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
         color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF8F9FB),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark ? Colors.white10 : const Color(0xFFEDEFF3), 
-          width: 1
-        ),
+            color: isDark ? Colors.white10 : const Color(0xFFEDEFF3), width: 1),
       ),
       child: TextFormField(
         controller: controller,
         obscureText: isPassword ? _obscureText : false,
         style: TextStyle(
-          fontFamily: 'Poppins', 
-          fontSize: 15, 
+          fontFamily: 'Poppins',
+          fontSize: 15,
           fontWeight: FontWeight.w600,
           color: themeProvider.textColor,
         ),
         decoration: InputDecoration(
           hintText: hint,
-          prefixIcon: Icon(icon, color: const Color(0xFFE65100).withOpacity(0.7), size: 22),
-          hintStyle: TextStyle(color: themeProvider.subTextColor.withOpacity(0.5), fontSize: 14),
+          prefixIcon: Icon(icon,
+              color: const Color(0xFFE65100).withOpacity(0.7), size: 22),
+          hintStyle: TextStyle(
+              color: themeProvider.subTextColor.withOpacity(0.5), fontSize: 14),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
           suffixIcon: isPassword
               ? IconButton(
                   icon: Icon(
-                    _obscureText ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                    _obscureText
+                        ? Icons.visibility_off_rounded
+                        : Icons.visibility_rounded,
                     color: themeProvider.subTextColor.withOpacity(0.4),
                     size: 20,
                   ),

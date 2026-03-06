@@ -150,16 +150,33 @@ class _HomePageState extends State<HomePage> {
                             setModalState(() => _isSubmitting = true);
 
                             try {
-                              // Ambil ID dari SharedPreferences
                               final prefs =
                                   await SharedPreferences.getInstance();
-                              // Sesuaikan 'user_id' dengan key yang kamu gunakan saat login
+
+                              // AMBIL ID: Pastikan key 'user_id' sama dengan saat Anda menyimpan data di LoginPage
                               int currentStudentId =
                                   prefs.getInt('user_id') ?? 0;
 
+                              // DEBUGGING: Cek di console terminal apakah ID-nya muncul atau malah 0
+                              print(
+                                  "DEBUG: Mengirim Absen untuk Student ID: $currentStudentId");
+
+                              if (currentStudentId == 0) {
+                                setModalState(() => _isSubmitting = false);
+                                QuickAlert.show(
+                                  context: context,
+                                  type: QuickAlertType.error,
+                                  text:
+                                      'Sesi login tidak valid. Silakan login ulang.',
+                                  confirmBtnColor: Colors.red,
+                                );
+                                return;
+                              }
+
                               final response =
                                   await ApiService.submitManualAttendance(
-                                studentId: currentStudentId,
+                                studentId:
+                                    currentStudentId, // ID dikirim sebagai angka ke Laravel
                                 status: selectedType.toLowerCase(),
                                 keterangan: reasonController.text,
                               );
