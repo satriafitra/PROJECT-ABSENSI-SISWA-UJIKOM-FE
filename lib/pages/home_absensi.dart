@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:quickalert/quickalert.dart'; // Pastikan diimport
+import 'package:quickalert/quickalert.dart';
 import '../providers/theme_provider.dart';
 import '../widgets/schedule_card.dart';
 import '../widgets/week_status.dart';
@@ -22,6 +22,14 @@ class _HomePageState extends State<HomePage> {
 
   // State untuk loading API
   bool _isSubmitting = false;
+
+  // Fungsi untuk refresh data
+  Future<void> _onRefresh() async {
+    // Memicu pembangunan ulang widget untuk mengambil data terbaru dari FutureBuilder
+    setState(() {});
+    // Memberi sedikit delay agar animasi refresh terlihat halus
+    await Future.delayed(const Duration(milliseconds: 800));
+  }
 
   String _getDaySuffix(int day) {
     if (day >= 11 && day <= 13) return 'th';
@@ -152,14 +160,8 @@ class _HomePageState extends State<HomePage> {
                             try {
                               final prefs =
                                   await SharedPreferences.getInstance();
-
-                              // AMBIL ID: Pastikan key 'user_id' sama dengan saat Anda menyimpan data di LoginPage
                               int currentStudentId =
                                   prefs.getInt('user_id') ?? 0;
-
-                              // DEBUGGING: Cek di console terminal apakah ID-nya muncul atau malah 0
-                              print(
-                                  "DEBUG: Mengirim Absen untuk Student ID: $currentStudentId");
 
                               if (currentStudentId == 0) {
                                 setModalState(() => _isSubmitting = false);
@@ -175,8 +177,7 @@ class _HomePageState extends State<HomePage> {
 
                               final response =
                                   await ApiService.submitManualAttendance(
-                                studentId:
-                                    currentStudentId, // ID dikirim sebagai angka ke Laravel
+                                studentId: currentStudentId,
                                 status: selectedType.toLowerCase(),
                                 keterangan: reasonController.text,
                               );
@@ -184,7 +185,7 @@ class _HomePageState extends State<HomePage> {
                               setModalState(() => _isSubmitting = false);
 
                               if (response['status'] == true) {
-                                Navigator.pop(context); // Tutup BottomSheet
+                                Navigator.pop(context);
                                 QuickAlert.show(
                                   context: context,
                                   type: QuickAlertType.success,
@@ -265,72 +266,88 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       backgroundColor: themeProvider.bgWhite,
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _dateCard(
-                      themeProvider, dayNumber, suffix, dayName, monthYear),
-                  const SizedBox(height: 20),
-                  _permissionCard(context, themeProvider),
-                  const SizedBox(height: 25),
-                  Text(
-                    "Today Schedule",
-                    style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: themeProvider.textColor),
-                  ),
-                  const SizedBox(height: 15),
-                  FutureBuilder<Map<String, dynamic>>(
-                    future: ApiService.fetchJadwalGuru(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(
+      body: RefreshIndicator(
+        color: orangeMain,
+        onRefresh: _onRefresh,
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                // Physics AlwaysScrollableScrollPhysics diperlukan agar 
+                // RefreshIndicator tetap bisa ditarik meski konten sedikit
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _dateCard(
+                        themeProvider, dayNumber, suffix, dayName, monthYear),
+                    const SizedBox(height: 20),
+                    _permissionCard(context, themeProvider),
+                    const SizedBox(height: 25),
+                    Text(
+                      "Today Schedule",
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: themeProvider.textColor),
+                    ),
+                    const SizedBox(height: 15),
+                    FutureBuilder<Map<String, dynamic>>(
+                      future: ApiService.fetchJadwalGuru(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(
+                              child: Padding(
+                            padding: EdgeInsets.only(top: 50),
                             child: CircularProgressIndicator(
-                                color: Color(0xFFFF7A30)));
-                      }
-                      if (snapshot.hasError ||
-                          snapshot.data?['status'] == false) {
-                        return Center(
+                                color: Color(0xFFFF7A30)),
+                          ));
+                        }
+                        if (snapshot.hasError ||
+                            snapshot.data?['status'] == false) {
+                          return Center(
+                              child: Padding(
+                            padding: EdgeInsets.only(top: 50),
                             child: Text(snapshot.data?['message'] ??
-                                "Gagal memuat jadwal"));
-                      }
+                                "Gagal memuat jadwal"),
+                          ));
+                        }
 
-                      final List rawData = snapshot.data?['data'] ?? [];
-                      final List filteredJadwal = rawData.where((item) {
-                        bool isSameDay =
-                            item['hari'].toString().toLowerCase() ==
-                                dayName.toLowerCase();
-                        return isSameDay;
-                      }).toList();
+                        final List rawData = snapshot.data?['data'] ?? [];
+                        final List filteredJadwal = rawData.where((item) {
+                          bool isSameDay =
+                              item['hari'].toString().toLowerCase() ==
+                                  dayName.toLowerCase();
+                          return isSameDay;
+                        }).toList();
 
-                      if (filteredJadwal.isEmpty) {
-                        return const Center(
-                            child: Text("Tidak ada jadwal hari ini."));
-                      }
+                        if (filteredJadwal.isEmpty) {
+                          return const Center(
+                              child: Padding(
+                            padding: EdgeInsets.only(top: 50),
+                            child: Text("Tidak ada jadwal hari ini."),
+                          ));
+                        }
 
-                      return Column(
-                        children: filteredJadwal.map((item) {
-                          return ScheduleCard(
-                            subject: item['mata_pelajaran'] ?? '-',
-                            teacher: item['guru']['nama'] ?? 'Guru',
-                            time:
-                                "${item['jam_mulai'].substring(0, 5)} - ${item['jam_selesai'].substring(0, 5)}",
-                          );
-                        }).toList(),
-                      );
-                    },
-                  ),
-                ],
+                        return Column(
+                          children: filteredJadwal.map((item) {
+                            return ScheduleCard(
+                              subject: item['mata_pelajaran'] ?? '-',
+                              teacher: item['guru']['nama'] ?? 'Guru',
+                              time:
+                                  "${item['jam_mulai'].substring(0, 5)} - ${item['jam_selesai'].substring(0, 5)}",
+                            );
+                          }).toList(),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -421,8 +438,8 @@ class _HomePageState extends State<HomePage> {
                   height: 180,
                   decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: orangeSoft
-                          .withOpacity(themeProvider.isDarkMode ? 0.1 : 0.4))),
+                      color: orangeSoft.withOpacity(
+                          themeProvider.isDarkMode ? 0.1 : 0.4))),
             ),
             Positioned(
               right: -30,
