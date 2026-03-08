@@ -73,6 +73,7 @@ class _QrScanPageState extends State<QrScanPage>
       final response = await ApiService.submitAttendance(
         studentId: Session.id!,
         qrToken: decoded['qr_token'],
+        createdAt: decoded['created_at'], // Tambahkan parameter ini di ApiService
       );
 
       if (response != null && response['status'] == true) {

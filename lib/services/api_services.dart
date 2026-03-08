@@ -45,6 +45,7 @@ class ApiService {
   static Future<Map<String, dynamic>> submitAttendance({
     required int studentId,
     required String qrToken,
+    required String createdAt, // 1. Tambahkan parameter wajib ini
   }) async {
     try {
       final response = await http.post(
@@ -53,6 +54,7 @@ class ApiService {
         body: jsonEncode({
           'student_id': studentId,
           'qr_token': qrToken,
+          'created_at': createdAt, // <-- INI YANG KURANG (Masalah Utama)
         }),
       );
       return _processResponse(response);
