@@ -7,6 +7,7 @@ import '../pages/area_gps.dart';
 import '../pages/pengaturan.dart';
 import '../pages/riwayat_absensi.dart'; // Sesuaikan path riwayat absensi Anda
 import '../providers/theme_provider.dart'; // Sesuaikan path provider Anda
+import '../pages/assessment.dart'; // Sesuaikan path provider Anda
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -42,7 +43,8 @@ class AppDrawer extends StatelessWidget {
     final themeProvider = Provider.of<ThemeProvider>(context);
 
     return Drawer(
-      backgroundColor: themeProvider.cardColor, // Menggunakan warna kartu (putih/abu gelap)
+      backgroundColor:
+          themeProvider.cardColor, // Menggunakan warna kartu (putih/abu gelap)
       elevation: 10,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
@@ -78,7 +80,8 @@ class AppDrawer extends StatelessWidget {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const RiwayatAbsensiPage()),
+                      MaterialPageRoute(
+                          builder: (context) => const RiwayatAbsensiPage()),
                     );
                   },
                 ),
@@ -90,7 +93,8 @@ class AppDrawer extends StatelessWidget {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const AreaGpsPage()),
+                      MaterialPageRoute(
+                          builder: (context) => const AreaGpsPage()),
                     );
                   },
                 ),
@@ -102,8 +106,38 @@ class AppDrawer extends StatelessWidget {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const SettingsPage()),
+                      MaterialPageRoute(
+                          builder: (context) => const SettingsPage()),
                     );
+                  },
+                ),
+                _buildMenuItem(
+                  context,
+                  themeProvider: themeProvider,
+                  icon: Icons
+                      .analytics_rounded, // Menggunakan icon grafik/analitik
+                  title: "Riwayat Penilaian",
+                  onTap: () {
+                    // Ambil ID dari class Session kamu (Session.id)
+                    final int? studentId = Session.id;
+
+                    if (studentId != null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              AssessmentScreen(studentId: studentId),
+                        ),
+                      );
+                    } else {
+                      // Jika karena alasan tertentu Session.id kosong
+                      Navigator.pop(context); // Tutup drawer
+                      QuickAlert.show(
+                        context: context,
+                        type: QuickAlertType.warning,
+                        text: 'ID Siswa tidak ditemukan, silakan login ulang.',
+                      );
+                    }
                   },
                 ),
               ],
@@ -111,7 +145,9 @@ class AppDrawer extends StatelessWidget {
           ),
 
           Divider(
-            color: themeProvider.isDarkMode ? Colors.white10 : Colors.black.withOpacity(0.05),
+            color: themeProvider.isDarkMode
+                ? Colors.white10
+                : Colors.black.withOpacity(0.05),
             thickness: 1,
             indent: 20,
             endIndent: 20,
@@ -166,7 +202,8 @@ class AppDrawer extends StatelessWidget {
           const SizedBox(height: 5),
           Row(
             children: [
-              Icon(Icons.badge_outlined, size: 14, color: Colors.white.withOpacity(0.8)),
+              Icon(Icons.badge_outlined,
+                  size: 14, color: Colors.white.withOpacity(0.8)),
               const SizedBox(width: 5),
               Text(
                 Session.nisn ?? 'NISN Tidak Tersedia',
@@ -192,8 +229,8 @@ class AppDrawer extends StatelessWidget {
     bool isSelected = false,
   }) {
     // Warna background menu saat aktif (di Dark Mode dibuat lebih redup)
-    final Color selectedBg = themeProvider.isDarkMode 
-        ? primaryOrange.withOpacity(0.15) 
+    final Color selectedBg = themeProvider.isDarkMode
+        ? primaryOrange.withOpacity(0.15)
         : const Color(0xFFFFF4F0);
 
     return Container(
@@ -234,14 +271,17 @@ class AppDrawer extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(15),
               border: Border.all(
-                color: themeProvider.isDarkMode ? Colors.redAccent.withOpacity(0.3) : Colors.red.withOpacity(0.2),
+                color: themeProvider.isDarkMode
+                    ? Colors.redAccent.withOpacity(0.3)
+                    : Colors.red.withOpacity(0.2),
               ),
               color: Colors.red.withOpacity(0.05),
             ),
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.power_settings_new_rounded, color: Colors.redAccent, size: 20),
+                Icon(Icons.power_settings_new_rounded,
+                    color: Colors.redAccent, size: 20),
                 SizedBox(width: 10),
                 Text(
                   "Keluar Aplikasi",

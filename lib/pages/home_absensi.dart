@@ -1,7 +1,9 @@
+import 'dart:io'; // Penting: Untuk menangani File gambar
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:quickalert/quickalert.dart';
+import 'package:image_picker/image_picker.dart'; // Penting: Library foto
 import '../providers/theme_provider.dart';
 import '../widgets/schedule_card.dart';
 import '../widgets/week_status.dart';
@@ -20,14 +22,13 @@ class _HomePageState extends State<HomePage> {
   final Color orangeSoft = const Color(0xFFFFC09A);
   final Color orangeDark = const Color(0xFFFF3B1F);
 
-  // State untuk loading API
+  // State untuk loading API dan Simpan Foto
   bool _isSubmitting = false;
+  File? _selectedImage; 
 
   // Fungsi untuk refresh data
   Future<void> _onRefresh() async {
-    // Memicu pembangunan ulang widget untuk mengambil data terbaru dari FutureBuilder
     setState(() {});
-    // Memberi sedikit delay agar animasi refresh terlihat halus
     await Future.delayed(const Duration(milliseconds: 800));
   }
 
@@ -48,6 +49,9 @@ class _HomePageState extends State<HomePage> {
   void _showPermissionForm(BuildContext context, ThemeProvider themeProvider) {
     String selectedType = 'Sakit';
     final TextEditingController reasonController = TextEditingController();
+    
+    // Reset status foto setiap kali modal dibuka
+    _selectedImage = null;
 
     showModalBottomSheet(
       context: context,
@@ -85,7 +89,7 @@ class _HomePageState extends State<HomePage> {
                         fontWeight: FontWeight.bold,
                         color: themeProvider.textColor)),
                 const SizedBox(height: 8),
-                Text("Silakan pilih alasan dan berikan keterangan singkat.",
+                Text("Silakan pilih alasan dan lampirkan bukti foto dari galeri.",
                     style: TextStyle(
                         fontSize: 14, color: themeProvider.subTextColor)),
                 const SizedBox(height: 25),
@@ -117,7 +121,7 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(height: 12),
                 TextField(
                   controller: reasonController,
-                  maxLines: 3,
+                  maxLines: 2,
                   style: TextStyle(color: themeProvider.textColor),
                   decoration: InputDecoration(
                     hintText: "Contoh: Demam tinggi...",
@@ -132,6 +136,65 @@ class _HomePageState extends State<HomePage> {
                         borderSide: BorderSide.none),
                   ),
                 ),
+                const SizedBox(height: 25),
+                Text("Bukti Foto (Galeri)",
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: themeProvider.textColor)),
+                const SizedBox(height: 12),
+                
+                // --- BAGIAN UPLOAD DARI GALERI ---
+                GestureDetector(
+                  onTap: () async {
+                    final ImagePicker picker = ImagePicker();
+                    // MENGGUNAKAN ImageSource.gallery
+                    final XFile? image = await picker.pickImage(
+                      source: ImageSource.gallery, 
+                      imageQuality: 50,
+                    );
+                    if (image != null) {
+                      setModalState(() {
+                        _selectedImage = File(image.path);
+                      });
+                    }
+                  },
+                  child: Container(
+                    height: 150,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: themeProvider.isDarkMode
+                          ? Colors.white.withOpacity(0.05)
+                          : Colors.grey[100],
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: orangeMain.withOpacity(0.3),
+                        width: 2,
+                      ),
+                      image: _selectedImage != null
+                          ? DecorationImage(
+                              image: FileImage(_selectedImage!),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
+                    ),
+                    child: _selectedImage == null
+                        ? Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.image_search_rounded,
+                                  color: orangeMain, size: 40),
+                              const SizedBox(height: 8),
+                              Text("Klik untuk Pilih dari Galeri",
+                                  style: TextStyle(
+                                      color: themeProvider.subTextColor,
+                                      fontSize: 12)),
+                            ],
+                          )
+                        : null,
+                  ),
+                ),
+                // ---------------------------------
+
                 const SizedBox(height: 30),
                 SizedBox(
                   width: double.infinity,
@@ -154,32 +217,28 @@ class _HomePageState extends State<HomePage> {
                               );
                               return;
                             }
+                            if (_selectedImage == null) {
+                              QuickAlert.show(
+                                context: context,
+                                type: QuickAlertType.warning,
+                                text: 'Harap lampirkan foto bukti!',
+                                confirmBtnColor: orangeMain,
+                              );
+                              return;
+                            }
 
                             setModalState(() => _isSubmitting = true);
 
                             try {
-                              final prefs =
-                                  await SharedPreferences.getInstance();
-                              int currentStudentId =
-                                  prefs.getInt('user_id') ?? 0;
+                              final prefs = await SharedPreferences.getInstance();
+                              int currentStudentId = prefs.getInt('user_id') ?? 0;
 
-                              if (currentStudentId == 0) {
-                                setModalState(() => _isSubmitting = false);
-                                QuickAlert.show(
-                                  context: context,
-                                  type: QuickAlertType.error,
-                                  text:
-                                      'Sesi login tidak valid. Silakan login ulang.',
-                                  confirmBtnColor: Colors.red,
-                                );
-                                return;
-                              }
-
-                              final response =
-                                  await ApiService.submitManualAttendance(
+                              final response = await ApiService.submitManualAttendance(
                                 studentId: currentStudentId,
                                 status: selectedType.toLowerCase(),
                                 keterangan: reasonController.text,
+                                // Pastikan di ApiService sudah mendukung parameter imageFile: File?
+                                imageFile: _selectedImage, 
                               );
 
                               setModalState(() => _isSubmitting = false);
@@ -273,8 +332,6 @@ class _HomePageState extends State<HomePage> {
           children: [
             Expanded(
               child: SingleChildScrollView(
-                // Physics AlwaysScrollableScrollPhysics diperlukan agar 
-                // RefreshIndicator tetap bisa ditarik meski konten sedikit
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                 child: Column(

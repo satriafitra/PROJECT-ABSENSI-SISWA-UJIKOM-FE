@@ -31,15 +31,11 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Absensi SMP',
-      // Konfigurasi Tema Dinamis
       theme: ThemeData(
         fontFamily: 'Poppins',
-        // Jika Dark Mode aktif, gunakan brightness dark agar status bar & sistem menyesuaikan
         brightness: themeProvider.isDarkMode ? Brightness.dark : Brightness.light,
-        // Background scaffold diambil dari getter bgWhite di ThemeProvider
         scaffoldBackgroundColor: themeProvider.bgWhite,
         
-        // Opsional: Menyesuaikan skema warna global
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFFFE6F47), // orangeMain
           brightness: themeProvider.isDarkMode ? Brightness.dark : Brightness.light,

@@ -23,6 +23,7 @@ dependencies:
   google_maps_flutter: ^2.5.0
   geolocator: ^14.0.2
   provider: ^6.1.5+1
+  image_picker: ^1.0.7 # <--- TAMBAHKAN BARIS INI
 
 dev_dependencies:
   flutter_test:

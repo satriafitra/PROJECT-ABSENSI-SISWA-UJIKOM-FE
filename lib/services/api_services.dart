@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+// Ganti 'your_project_name' dengan nama project kamu yang ada di pubspec.yaml
+import 'package:absensi_app/models/assessment_model.dart'; 
 
 class ApiService {
   static const String baseUrl =
@@ -28,11 +30,10 @@ class ApiService {
   }
 
   // ================= AMBIL JADWAL HARI INI =================
-  // Menyesuaikan dengan kebutuhan HomePage Anda
   static Future<Map<String, dynamic>> fetchJadwalGuru() async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/jadwal-guru'), // Sesuaikan endpoint Laravel Anda
+        Uri.parse('$baseUrl/jadwal-guru'),
         headers: _headers(),
       );
       return _processResponse(response);
@@ -45,7 +46,7 @@ class ApiService {
   static Future<Map<String, dynamic>> submitAttendance({
     required int studentId,
     required String qrToken,
-    required String createdAt, // 1. Tambahkan parameter wajib ini
+    required String createdAt,
   }) async {
     try {
       final response = await http.post(
@@ -54,7 +55,7 @@ class ApiService {
         body: jsonEncode({
           'student_id': studentId,
           'qr_token': qrToken,
-          'created_at': createdAt, // <-- INI YANG KURANG (Masalah Utama)
+          'created_at': createdAt,
         }),
       );
       return _processResponse(response);
@@ -77,6 +78,65 @@ class ApiService {
     }
   }
 
+  // ================= ABSENSI MANUAL (IZIN/SAKIT) DENGAN FOTO =================
+  static Future<Map<String, dynamic>> submitManualAttendance({
+    required int studentId,
+    required String status,
+    required String keterangan,
+    File? imageFile,
+  }) async {
+    try {
+      var uri = Uri.parse('$baseUrl/absen-manual');
+      var request = http.MultipartRequest('POST', uri);
+
+      request.headers.addAll({
+        'Accept': 'application/json',
+      });
+
+      request.fields['student_id'] = studentId.toString();
+      request.fields['status'] = status.toLowerCase();
+      request.fields['keterangan'] = keterangan;
+
+      if (imageFile != null) {
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            'image', 
+            imageFile.path,
+          ),
+        );
+      }
+
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+
+      return _processResponse(response);
+    } catch (e) {
+      return {'status': false, 'message': 'Terjadi kesalahan koneksi: $e'};
+    }
+  }
+
+  // ================= AMBIL PENILAIAN TERBARU =================
+  static Future<AssessmentModel?> fetchLatestAssessment(int studentId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/student/assessment/$studentId'),
+        headers: _headers(),
+      );
+
+      final result = _processResponse(response);
+
+      // Pastikan status sukses dan 'data' tidak null
+      if ((result['status'] == 'success' || result['status'] == true) && result['data'] != null) {
+        return AssessmentModel.fromJson(result['data']);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print('Error fetchAssessment: $e');
+      return null;
+    }
+  }
+
   // Helper function untuk memproses response & handling status code
   static Map<String, dynamic> _processResponse(http.Response response) {
     try {
@@ -92,28 +152,6 @@ class ApiService {
       }
     } catch (e) {
       return {'status': false, 'message': 'Gagal memproses data dari server'};
-    }
-  }
-
-  // ================= ABSENSI MANUAL (IZIN/SAKIT) =================
-  static Future<Map<String, dynamic>> submitManualAttendance({
-    required int studentId,
-    required String status,
-    required String keterangan,
-  }) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/absen-manual'),
-        headers: _headers(),
-        body: jsonEncode({
-          'student_id': studentId,
-          'status': status.toLowerCase(), // agar seragam 'sakit' atau 'izin'
-          'keterangan': keterangan,
-        }),
-      );
-      return _processResponse(response);
-    } catch (e) {
-      return {'status': false, 'message': 'Terjadi kesalahan: $e'};
     }
   }
 }
