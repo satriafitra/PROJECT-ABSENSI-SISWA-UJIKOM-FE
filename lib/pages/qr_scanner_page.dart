@@ -3,6 +3,9 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:audioplayers/audioplayers.dart'; // <-- import audioplayers
+import 'package:geolocator/geolocator.dart'; // Tambahkan ini
+import 'package:provider/provider.dart';
+import '../providers/theme_provider.dart';
 
 import '../services/api_services.dart'; // Pastikan path benar
 import '../utils/session.dart'; // Pastikan path benar
@@ -60,23 +63,35 @@ class _QrScanPageState extends State<QrScanPage>
     if (isProcessing) return;
     isProcessing = true;
 
-    // Putar suara saat QR discan
     _audioPlayer.play(AssetSource('audio/qr_sound.mp3'));
 
     try {
       final decoded = jsonDecode(rawValue);
-
-      if (!decoded.containsKey('qr_token')) {
-        throw 'QR tidak valid';
-      }
+      if (!decoded.containsKey('qr_token')) throw 'QR tidak valid';
 
       final response = await ApiService.submitAttendance(
         studentId: Session.id!,
         qrToken: decoded['qr_token'],
-        createdAt: decoded['created_at'], // Tambahkan parameter ini di ApiService
+        createdAt: decoded['created_at'],
       );
 
       if (response != null && response['status'] == true) {
+        // --- LOGIKA SINKRONISASI POIN ---
+        if (response['detail'] != null &&
+            response['detail']['total_poin_skrg'] != null) {
+          int pointBaru = response['detail']['total_poin_skrg'];
+
+          // 1. Update di Session (untuk persistensi data)
+          await Session.updatePoints(pointBaru);
+
+          // 2. Update di ThemeProvider (agar AppHeader langsung berubah angkanya)
+          if (mounted) {
+            Provider.of<ThemeProvider>(context, listen: false)
+                .updatePoints(pointBaru);
+          }
+        }
+        // --------------------------------
+
         cameraController.stop();
         if (!mounted) return;
 
@@ -88,7 +103,6 @@ class _QrScanPageState extends State<QrScanPage>
           MaterialPageRoute(builder: (_) => const RiwayatAbsensiPage()),
         );
       } else {
-        // Tetap tampilkan pesan gagal, tapi suara sudah diputar di atas
         throw response['message'] ?? 'Gagal melakukan absensi';
       }
     } catch (e) {

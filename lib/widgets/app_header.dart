@@ -2,13 +2,15 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../utils/session.dart';
-import '../providers/theme_provider.dart'; // Pastikan path ini benar
+import '../providers/theme_provider.dart';
 
-const orangeMain = Color(0xFFFF7A30);
+// Menggunakan warna orange utama yang konsisten
+const orangeMain = Color(0xFFFE6F47);
 
 class AppHeader extends StatelessWidget {
   const AppHeader({super.key});
 
+  // Fungsi untuk memotong nama agar tidak terlalu panjang di UI
   String _shortName(String fullName) {
     final parts = fullName.trim().split(' ');
     if (parts.length >= 2) {
@@ -19,12 +21,15 @@ class AppHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Mengambil state tema
+    // Inisialisasi Provider untuk tema dan poin
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDark = themeProvider.isDarkMode;
 
     final fullName = Session.studentName ?? 'Siswa';
     final shortName = _shortName(fullName);
+    
+    // Ambil data poin langsung dari Provider agar UI auto-refresh
+    final points = themeProvider.studentPoints;
 
     return SafeArea(
       bottom: false,
@@ -33,52 +38,57 @@ class AppHeader extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // NOTIFICATION ICON
+            // TOMBOL NOTIFIKASI
             _buildIconButton(
               icon: Icons.notifications_outlined,
-              onTap: () {},
+              onTap: () {
+                // Tambahkan aksi notifikasi di sini
+              },
               hasBadge: true,
               themeProvider: themeProvider,
             ),
 
-            // PREMIUM PROFILE CARD (Adaptive Glassmorphism)
+            // PREMIUM PROFILE CARD (Glassmorphism)
             Expanded(
               child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 20),
-                height: 48,
+                margin: const EdgeInsets.symmetric(horizontal: 15),
+                height: 52,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(26),
                   gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                     colors: [
                       isDark 
-                          ? Colors.white.withOpacity(0.1) 
-                          : Colors.white.withOpacity(0.9),
+                          ? Colors.white.withOpacity(0.12) 
+                          : Colors.white.withOpacity(0.95),
                       isDark 
                           ? Colors.white.withOpacity(0.05) 
-                          : Colors.white.withOpacity(0.7),
+                          : Colors.white.withOpacity(0.8),
                     ],
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(isDark ? 0.3 : 0.06),
+                      color: Colors.black.withOpacity(isDark ? 0.3 : 0.08),
                       blurRadius: 20,
                       offset: const Offset(0, 8),
                     ),
                   ],
                   border: Border.all(
                     color: isDark 
-                        ? Colors.white.withOpacity(0.1) 
-                        : Colors.white.withOpacity(0.5),
+                        ? Colors.white.withOpacity(0.15) 
+                        : Colors.white.withOpacity(0.6),
                   ),
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(26),
                   child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
                       child: Row(
                         children: [
+                          // AVATAR DENGAN GRADIENT BORDER
                           Container(
                             padding: const EdgeInsets.all(2),
                             decoration: const BoxDecoration(
@@ -91,7 +101,7 @@ class AppHeader extends StatelessWidget {
                               radius: 18,
                               backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                               child: Text(
-                                shortName[0].toUpperCase(),
+                                shortName.isNotEmpty ? shortName[0].toUpperCase() : 'S',
                                 style: const TextStyle(
                                   color: orangeMain,
                                   fontWeight: FontWeight.bold,
@@ -101,19 +111,13 @@ class AppHeader extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 10),
+                          
+                          // INFO NAMA & POIN
                           Expanded(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  'Selamat Pagi,',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: themeProvider.subTextColor,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
                                 Text(
                                   shortName,
                                   overflow: TextOverflow.ellipsis,
@@ -121,8 +125,27 @@ class AppHeader extends StatelessWidget {
                                     fontSize: 13,
                                     fontWeight: FontWeight.w700,
                                     color: themeProvider.textColor,
-                                    letterSpacing: 0.3,
+                                    letterSpacing: 0.2,
                                   ),
+                                ),
+                                const SizedBox(height: 2),
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.stars_rounded, 
+                                      size: 12, 
+                                      color: Color(0xFFFFB800)
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '$points Poin',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
+                                        color: themeProvider.subTextColor,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
@@ -135,7 +158,7 @@ class AppHeader extends StatelessWidget {
               ),
             ),
 
-            // MENU BUTTON
+            // TOMBOL MENU (Drawer)
             _buildIconButton(
               icon: Icons.notes_rounded,
               onTap: () => Scaffold.of(context).openEndDrawer(),
@@ -147,6 +170,7 @@ class AppHeader extends StatelessWidget {
     );
   }
 
+  // Helper Widget untuk membuat Icon Button bulat yang konsisten
   Widget _buildIconButton({
     required IconData icon,
     required VoidCallback onTap,

@@ -36,18 +36,24 @@ class AssessmentDetail {
   final int score;
   final String categoryName;
   final String? categoryDescription;
+  final String indicatorName; // Tambahan: Teks pertanyaan/indikator
 
   AssessmentDetail({
     required this.score,
     required this.categoryName,
     this.categoryDescription,
+    required this.indicatorName,
   });
 
   factory AssessmentDetail.fromJson(Map<String, dynamic> json) {
     return AssessmentDetail(
-      score: json['score'],
-      categoryName: json['category']['name'],
-      categoryDescription: json['category']['description'],
+      score: json['score'] ?? 0,
+      // Sesuaikan dengan struktur JSON dari Backend (Eloquent relationship)
+      categoryName:
+          json['category'] != null ? json['category']['name'] : 'Umum',
+      indicatorName: json['question'] != null
+          ? json['question']['question_text']
+          : 'Penilaian Karakter',
     );
   }
 }
