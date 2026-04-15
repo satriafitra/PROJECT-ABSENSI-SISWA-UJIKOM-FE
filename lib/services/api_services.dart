@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 // Ganti 'your_project_name' dengan nama project kamu yang ada di pubspec.yaml
-import 'package:absensi_app/models/assessment_model.dart'; 
+import 'package:absensi_app/models/assessment_model.dart';
 
 class ApiService {
   static const String baseUrl =
@@ -100,7 +100,7 @@ class ApiService {
       if (imageFile != null) {
         request.files.add(
           await http.MultipartFile.fromPath(
-            'image', 
+            'image',
             imageFile.path,
           ),
         );
@@ -126,7 +126,8 @@ class ApiService {
       final result = _processResponse(response);
 
       // Pastikan status sukses dan 'data' tidak null
-      if ((result['status'] == 'success' || result['status'] == true) && result['data'] != null) {
+      if ((result['status'] == 'success' || result['status'] == true) &&
+          result['data'] != null) {
         return AssessmentModel.fromJson(result['data']);
       } else {
         return null;
@@ -134,6 +135,47 @@ class ApiService {
     } catch (e) {
       print('Error fetchAssessment: $e');
       return null;
+    }
+  }
+
+  // ================= MARKETPLACE =================
+  static Future<List<dynamic>> fetchMarketplace() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/marketplace'),
+        headers: _headers(),
+      );
+
+      final result = _processResponse(response);
+
+      if (result['success'] == true && result['data'] != null) {
+        return result['data'];
+      } else {
+        return [];
+      }
+    } catch (e) {
+      print('Error marketplace: $e');
+      return [];
+    }
+  }
+
+  static Future<Map<String, dynamic>> redeemItem({
+    required int studentId,
+    required int itemId,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/marketplace/redeem'),
+        headers: _headers(),
+        body: jsonEncode({
+          'student_id': studentId,
+          'item_id': itemId,
+        }),
+      );
+
+      return _processResponse(response);
+    } catch (e) {
+      return {'status': false, 'message': 'Gagal membeli voucher: $e'};
     }
   }
 

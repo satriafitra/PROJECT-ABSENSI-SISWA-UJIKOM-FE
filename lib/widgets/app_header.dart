@@ -4,13 +4,11 @@ import 'package:provider/provider.dart';
 import '../utils/session.dart';
 import '../providers/theme_provider.dart';
 
-// Menggunakan warna orange utama yang konsisten
 const orangeMain = Color(0xFFFE6F47);
 
 class AppHeader extends StatelessWidget {
   const AppHeader({super.key});
 
-  // Fungsi untuk memotong nama agar tidak terlalu panjang di UI
   String _shortName(String fullName) {
     final parts = fullName.trim().split(' ');
     if (parts.length >= 2) {
@@ -21,14 +19,13 @@ class AppHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Inisialisasi Provider untuk tema dan poin
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDark = themeProvider.isDarkMode;
 
     final fullName = Session.studentName ?? 'Siswa';
     final shortName = _shortName(fullName);
-    
-    // Ambil data poin langsung dari Provider agar UI auto-refresh
+
+    // 🔥 AMBIL DARI PROVIDER (INI YANG PENTING)
     final points = themeProvider.studentPoints;
 
     return SafeArea(
@@ -38,17 +35,13 @@ class AppHeader extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // TOMBOL NOTIFIKASI
             _buildIconButton(
               icon: Icons.notifications_outlined,
-              onTap: () {
-                // Tambahkan aksi notifikasi di sini
-              },
+              onTap: () {},
               hasBadge: true,
               themeProvider: themeProvider,
             ),
 
-            // PREMIUM PROFILE CARD (Glassmorphism)
             Expanded(
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 15),
@@ -56,28 +49,14 @@ class AppHeader extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(26),
                   gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
                     colors: [
-                      isDark 
-                          ? Colors.white.withOpacity(0.12) 
+                      isDark
+                          ? Colors.white.withOpacity(0.12)
                           : Colors.white.withOpacity(0.95),
-                      isDark 
-                          ? Colors.white.withOpacity(0.05) 
+                      isDark
+                          ? Colors.white.withOpacity(0.05)
                           : Colors.white.withOpacity(0.8),
                     ],
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(isDark ? 0.3 : 0.08),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                  border: Border.all(
-                    color: isDark 
-                        ? Colors.white.withOpacity(0.15) 
-                        : Colors.white.withOpacity(0.6),
                   ),
                 ),
                 child: ClipRRect(
@@ -88,7 +67,6 @@ class AppHeader extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 6),
                       child: Row(
                         children: [
-                          // AVATAR DENGAN GRADIENT BORDER
                           Container(
                             padding: const EdgeInsets.all(2),
                             decoration: const BoxDecoration(
@@ -99,20 +77,21 @@ class AppHeader extends StatelessWidget {
                             ),
                             child: CircleAvatar(
                               radius: 18,
-                              backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                              backgroundColor:
+                                  isDark ? const Color(0xFF1E1E1E) : Colors.white,
                               child: Text(
-                                shortName.isNotEmpty ? shortName[0].toUpperCase() : 'S',
+                                shortName.isNotEmpty
+                                    ? shortName[0].toUpperCase()
+                                    : 'S',
                                 style: const TextStyle(
                                   color: orangeMain,
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 14,
                                 ),
                               ),
                             ),
                           ),
                           const SizedBox(width: 10),
-                          
-                          // INFO NAMA & POIN
+
                           Expanded(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -123,25 +102,20 @@ class AppHeader extends StatelessWidget {
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     fontSize: 13,
-                                    fontWeight: FontWeight.w700,
+                                    fontWeight: FontWeight.bold,
                                     color: themeProvider.textColor,
-                                    letterSpacing: 0.2,
                                   ),
                                 ),
                                 const SizedBox(height: 2),
                                 Row(
                                   children: [
-                                    const Icon(
-                                      Icons.stars_rounded, 
-                                      size: 12, 
-                                      color: Color(0xFFFFB800)
-                                    ),
+                                    const Icon(Icons.stars,
+                                        size: 12, color: Color(0xFFFFB800)),
                                     const SizedBox(width: 4),
                                     Text(
                                       '$points Poin',
                                       style: TextStyle(
                                         fontSize: 10,
-                                        fontWeight: FontWeight.w600,
                                         color: themeProvider.subTextColor,
                                       ),
                                     ),
@@ -158,7 +132,6 @@ class AppHeader extends StatelessWidget {
               ),
             ),
 
-            // TOMBOL MENU (Drawer)
             _buildIconButton(
               icon: Icons.notes_rounded,
               onTap: () => Scaffold.of(context).openEndDrawer(),
@@ -170,38 +143,23 @@ class AppHeader extends StatelessWidget {
     );
   }
 
-  // Helper Widget untuk membuat Icon Button bulat yang konsisten
   Widget _buildIconButton({
     required IconData icon,
     required VoidCallback onTap,
     required ThemeProvider themeProvider,
     bool hasBadge = false,
   }) {
-    final isDark = themeProvider.isDarkMode;
-
     return GestureDetector(
       onTap: onTap,
       child: Stack(
-        clipBehavior: Clip.none,
         children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: themeProvider.cardColor,
               shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
             ),
-            child: Icon(
-              icon, 
-              size: 22, 
-              color: themeProvider.textColor,
-            ),
+            child: Icon(icon, color: themeProvider.textColor),
           ),
           if (hasBadge)
             Positioned(
@@ -210,13 +168,9 @@ class AppHeader extends StatelessWidget {
               child: Container(
                 height: 10,
                 width: 10,
-                decoration: BoxDecoration(
-                  color: Colors.redAccent,
+                decoration: const BoxDecoration(
+                  color: Colors.red,
                   shape: BoxShape.circle,
-                  border: Border.all(
-                    color: themeProvider.cardColor, 
-                    width: 2,
-                  ),
                 ),
               ),
             ),
