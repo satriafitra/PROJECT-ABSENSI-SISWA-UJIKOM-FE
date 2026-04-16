@@ -1,9 +1,9 @@
-import 'dart:io'; // Penting: Untuk menangani File gambar
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:quickalert/quickalert.dart';
-import 'package:image_picker/image_picker.dart'; // Penting: Library foto
+import 'package:image_picker/image_picker.dart';
 import '../providers/theme_provider.dart';
 import '../widgets/schedule_card.dart';
 import '../widgets/week_status.dart';
@@ -22,11 +22,9 @@ class _HomePageState extends State<HomePage> {
   final Color orangeSoft = const Color(0xFFFFC09A);
   final Color orangeDark = const Color(0xFFFF3B1F);
 
-  // State untuk loading API dan Simpan Foto
   bool _isSubmitting = false;
-  File? _selectedImage; 
+  File? _selectedImage;
 
-  // Fungsi untuk refresh data
   Future<void> _onRefresh() async {
     setState(() {});
     await Future.delayed(const Duration(milliseconds: 800));
@@ -35,22 +33,16 @@ class _HomePageState extends State<HomePage> {
   String _getDaySuffix(int day) {
     if (day >= 11 && day <= 13) return 'th';
     switch (day % 10) {
-      case 1:
-        return 'st';
-      case 2:
-        return 'nd';
-      case 3:
-        return 'rd';
-      default:
-        return 'th';
+      case 1: return 'st';
+      case 2: return 'nd';
+      case 3: return 'rd';
+      default: return 'th';
     }
   }
 
   void _showPermissionForm(BuildContext context, ThemeProvider themeProvider) {
     String selectedType = 'Sakit';
     final TextEditingController reasonController = TextEditingController();
-    
-    // Reset status foto setiap kali modal dibuka
     _selectedImage = null;
 
     showModalBottomSheet(
@@ -59,9 +51,7 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: Colors.transparent,
       builder: (context) => StatefulBuilder(
         builder: (context, setModalState) => Container(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
           decoration: BoxDecoration(
             color: themeProvider.cardColor,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
@@ -74,8 +64,7 @@ class _HomePageState extends State<HomePage> {
               children: [
                 Center(
                   child: Container(
-                    width: 50,
-                    height: 5,
+                    width: 50, height: 5,
                     decoration: BoxDecoration(
                       color: themeProvider.subTextColor.withOpacity(0.3),
                       borderRadius: BorderRadius.circular(10),
@@ -83,207 +72,77 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 const SizedBox(height: 25),
-                Text("Form Izin & Sakit",
-                    style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: themeProvider.textColor)),
+                Text("Form Izin & Sakit", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: themeProvider.textColor)),
                 const SizedBox(height: 8),
-                Text("Silakan pilih alasan dan lampirkan bukti foto dari galeri.",
-                    style: TextStyle(
-                        fontSize: 14, color: themeProvider.subTextColor)),
+                Text("Silakan pilih alasan dan lampirkan bukti foto.", style: TextStyle(fontSize: 14, color: themeProvider.subTextColor)),
                 const SizedBox(height: 25),
-                Text("Pilih Alasan",
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: themeProvider.textColor)),
-                const SizedBox(height: 12),
                 Row(
                   children: [
-                    _buildChoiceChip(themeProvider,
-                        label: "Sakit",
-                        isSelected: selectedType == 'Sakit',
-                        onSelected: (val) =>
-                            setModalState(() => selectedType = 'Sakit')),
+                    _buildChoiceChip(themeProvider, label: "Sakit", isSelected: selectedType == 'Sakit', onSelected: (val) => setModalState(() => selectedType = 'Sakit')),
                     const SizedBox(width: 12),
-                    _buildChoiceChip(themeProvider,
-                        label: "Izin",
-                        isSelected: selectedType == 'Izin',
-                        onSelected: (val) =>
-                            setModalState(() => selectedType = 'Izin')),
+                    _buildChoiceChip(themeProvider, label: "Izin", isSelected: selectedType == 'Izin', onSelected: (val) => setModalState(() => selectedType = 'Izin')),
                   ],
                 ),
                 const SizedBox(height: 25),
-                Text("Keterangan",
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: themeProvider.textColor)),
-                const SizedBox(height: 12),
                 TextField(
                   controller: reasonController,
                   maxLines: 2,
                   style: TextStyle(color: themeProvider.textColor),
                   decoration: InputDecoration(
-                    hintText: "Contoh: Demam tinggi...",
-                    hintStyle: TextStyle(
-                        color: themeProvider.subTextColor, fontSize: 14),
+                    hintText: "Keterangan alasan...",
                     filled: true,
-                    fillColor: themeProvider.isDarkMode
-                        ? Colors.white.withOpacity(0.05)
-                        : Colors.grey[100],
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide.none),
+                    fillColor: themeProvider.isDarkMode ? Colors.white.withOpacity(0.05) : Colors.grey[100],
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
                   ),
                 ),
-                const SizedBox(height: 25),
-                Text("Bukti Foto (Galeri)",
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: themeProvider.textColor)),
-                const SizedBox(height: 12),
-                
-                // --- BAGIAN UPLOAD DARI GALERI ---
+                const SizedBox(height: 20),
                 GestureDetector(
                   onTap: () async {
                     final ImagePicker picker = ImagePicker();
-                    // MENGGUNAKAN ImageSource.gallery
-                    final XFile? image = await picker.pickImage(
-                      source: ImageSource.gallery, 
-                      imageQuality: 50,
-                    );
-                    if (image != null) {
-                      setModalState(() {
-                        _selectedImage = File(image.path);
-                      });
-                    }
+                    final XFile? image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 50);
+                    if (image != null) setModalState(() => _selectedImage = File(image.path));
                   },
                   child: Container(
-                    height: 150,
-                    width: double.infinity,
+                    height: 150, width: double.infinity,
                     decoration: BoxDecoration(
-                      color: themeProvider.isDarkMode
-                          ? Colors.white.withOpacity(0.05)
-                          : Colors.grey[100],
+                      color: themeProvider.isDarkMode ? Colors.white.withOpacity(0.05) : Colors.grey[100],
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: orangeMain.withOpacity(0.3),
-                        width: 2,
-                      ),
-                      image: _selectedImage != null
-                          ? DecorationImage(
-                              image: FileImage(_selectedImage!),
-                              fit: BoxFit.cover,
-                            )
-                          : null,
+                      border: Border.all(color: orangeMain.withOpacity(0.3), width: 2),
+                      image: _selectedImage != null ? DecorationImage(image: FileImage(_selectedImage!), fit: BoxFit.cover) : null,
                     ),
-                    child: _selectedImage == null
-                        ? Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.image_search_rounded,
-                                  color: orangeMain, size: 40),
-                              const SizedBox(height: 8),
-                              Text("Klik untuk Pilih dari Galeri",
-                                  style: TextStyle(
-                                      color: themeProvider.subTextColor,
-                                      fontSize: 12)),
-                            ],
-                          )
+                    child: _selectedImage == null 
+                        ? Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.image_search_rounded, color: orangeMain, size: 40), Text("Pilih Foto Bukti", style: TextStyle(color: themeProvider.subTextColor, fontSize: 12))]) 
                         : null,
                   ),
                 ),
-                // ---------------------------------
-
                 const SizedBox(height: 30),
                 SizedBox(
-                  width: double.infinity,
-                  height: 55,
+                  width: double.infinity, height: 55,
                   child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: orangeMain,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
-                    ),
-                    onPressed: _isSubmitting
-                        ? null
-                        : () async {
-                            if (reasonController.text.trim().isEmpty) {
-                              QuickAlert.show(
-                                context: context,
-                                type: QuickAlertType.warning,
-                                text: 'Keterangan tidak boleh kosong!',
-                                confirmBtnColor: orangeMain,
-                              );
-                              return;
-                            }
-                            if (_selectedImage == null) {
-                              QuickAlert.show(
-                                context: context,
-                                type: QuickAlertType.warning,
-                                text: 'Harap lampirkan foto bukti!',
-                                confirmBtnColor: orangeMain,
-                              );
-                              return;
-                            }
-
-                            setModalState(() => _isSubmitting = true);
-
-                            try {
-                              final prefs = await SharedPreferences.getInstance();
-                              int currentStudentId = prefs.getInt('user_id') ?? 0;
-
-                              final response = await ApiService.submitManualAttendance(
-                                studentId: currentStudentId,
-                                status: selectedType.toLowerCase(),
-                                keterangan: reasonController.text,
-                                // Pastikan di ApiService sudah mendukung parameter imageFile: File?
-                                imageFile: _selectedImage, 
-                              );
-
-                              setModalState(() => _isSubmitting = false);
-
-                              if (response['status'] == true) {
-                                Navigator.pop(context);
-                                QuickAlert.show(
-                                  context: context,
-                                  type: QuickAlertType.success,
-                                  title: 'Berhasil!',
-                                  text: response['message'],
-                                  confirmBtnColor: orangeMain,
-                                );
-                              } else {
-                                QuickAlert.show(
-                                  context: context,
-                                  type: QuickAlertType.error,
-                                  title: 'Gagal',
-                                  text: response['message'],
-                                  confirmBtnColor: Colors.red,
-                                );
-                              }
-                            } catch (e) {
-                              setModalState(() => _isSubmitting = false);
-                              QuickAlert.show(
-                                context: context,
-                                type: QuickAlertType.error,
-                                text: 'Terjadi kesalahan sistem',
-                                confirmBtnColor: Colors.red,
-                              );
-                            }
-                          },
-                    child: _isSubmitting
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                                color: Colors.white, strokeWidth: 2))
-                        : const Text("Kirim Laporan",
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold)),
+                    style: ElevatedButton.styleFrom(backgroundColor: orangeMain, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+                    onPressed: _isSubmitting ? null : () async {
+                      if (reasonController.text.trim().isEmpty || _selectedImage == null) {
+                        QuickAlert.show(context: context, type: QuickAlertType.warning, text: 'Lengkapi data dan foto!');
+                        return;
+                      }
+                      setModalState(() => _isSubmitting = true);
+                      try {
+                        final prefs = await SharedPreferences.getInstance();
+                        int userId = prefs.getInt('user_id') ?? 0;
+                        final res = await ApiService.submitManualAttendance(studentId: userId, status: selectedType.toLowerCase(), keterangan: reasonController.text, imageFile: _selectedImage);
+                        setModalState(() => _isSubmitting = false);
+                        if (res['status'] == true) {
+                          if (context.mounted) Navigator.pop(context);
+                          QuickAlert.show(context: context, type: QuickAlertType.success, text: res['message'], confirmBtnColor: orangeMain);
+                        }
+                      } catch (e) {
+                        setModalState(() => _isSubmitting = false);
+                        QuickAlert.show(context: context, type: QuickAlertType.error, text: 'Terjadi kesalahan sistem');
+                      }
+                    },
+                    child: _isSubmitting ? const CircularProgressIndicator(color: Colors.white) : const Text("Kirim Laporan", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   ),
                 ),
-                const SizedBox(height: 10),
               ],
             ),
           ),
@@ -292,22 +151,13 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildChoiceChip(ThemeProvider themeProvider,
-      {required String label,
-      required bool isSelected,
-      required Function(bool) onSelected}) {
+  Widget _buildChoiceChip(ThemeProvider themeProvider, {required String label, required bool isSelected, required Function(bool) onSelected}) {
     return ChoiceChip(
       label: Text(label),
       selected: isSelected,
       onSelected: onSelected,
       selectedColor: orangeMain,
-      backgroundColor: themeProvider.isDarkMode
-          ? Colors.white.withOpacity(0.1)
-          : Colors.grey[100],
-      labelStyle: TextStyle(
-          color: isSelected ? Colors.white : themeProvider.textColor,
-          fontWeight: FontWeight.bold),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      labelStyle: TextStyle(color: isSelected ? Colors.white : themeProvider.textColor, fontWeight: FontWeight.bold),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       showCheckmark: false,
     );
@@ -315,9 +165,11 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    // 🔥 POINT DI Diamond DARI PROVIDER DISINI
     final themeProvider = Provider.of<ThemeProvider>(context);
-    final DateTime now = DateTime.now();
+    final int currentPoints = themeProvider.studentPoints;
 
+    final DateTime now = DateTime.now();
     final String dayNumber = DateFormat('d').format(now);
     final String dayName = DateFormat('EEEE', 'id_ID').format(now);
     final String monthYear = DateFormat('MMMM yyyy', 'id_ID').format(now);
@@ -328,79 +180,124 @@ class _HomePageState extends State<HomePage> {
       body: RefreshIndicator(
         color: orangeMain,
         onRefresh: _onRefresh,
-        child: Column(
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 15),
+              // Pass currentPoints ke widget _dateCard
+              _dateCard(themeProvider, dayNumber, suffix, dayName, monthYear, currentPoints),
+              const SizedBox(height: 15), 
+              _permissionCard(context, themeProvider),
+              const SizedBox(height: 20), 
+              Text("Today Schedule", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: themeProvider.textColor)),
+              const SizedBox(height: 12), 
+              _buildScheduleList(dayName),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _dateCard(ThemeProvider themeProvider, String day, String suffix, String dayName, String monthYear, int points) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: themeProvider.cardColor,
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 30,
+            offset: const Offset(0, 15),
+            color: orangeMain.withOpacity(themeProvider.isDarkMode ? 0.15 : 0.1),
+          )
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(30),
+        child: Stack(
           children: [
-            Expanded(
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _dateCard(
-                        themeProvider, dayNumber, suffix, dayName, monthYear),
-                    const SizedBox(height: 20),
-                    _permissionCard(context, themeProvider),
-                    const SizedBox(height: 25),
-                    Text(
-                      "Today Schedule",
-                      style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: themeProvider.textColor),
-                    ),
-                    const SizedBox(height: 15),
-                    FutureBuilder<Map<String, dynamic>>(
-                      future: ApiService.fetchJadwalGuru(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return const Center(
-                              child: Padding(
-                            padding: EdgeInsets.only(top: 50),
-                            child: CircularProgressIndicator(
-                                color: Color(0xFFFF7A30)),
-                          ));
-                        }
-                        if (snapshot.hasError ||
-                            snapshot.data?['status'] == false) {
-                          return Center(
-                              child: Padding(
-                            padding: EdgeInsets.only(top: 50),
-                            child: Text(snapshot.data?['message'] ??
-                                "Gagal memuat jadwal"),
-                          ));
-                        }
-
-                        final List rawData = snapshot.data?['data'] ?? [];
-                        final List filteredJadwal = rawData.where((item) {
-                          bool isSameDay =
-                              item['hari'].toString().toLowerCase() ==
-                                  dayName.toLowerCase();
-                          return isSameDay;
-                        }).toList();
-
-                        if (filteredJadwal.isEmpty) {
-                          return const Center(
-                              child: Padding(
-                            padding: EdgeInsets.only(top: 50),
-                            child: Text("Tidak ada jadwal hari ini."),
-                          ));
-                        }
-
-                        return Column(
-                          children: filteredJadwal.map((item) {
-                            return ScheduleCard(
-                              subject: item['mata_pelajaran'] ?? '-',
-                              teacher: item['guru']['nama'] ?? 'Guru',
-                              time:
-                                  "${item['jam_mulai'].substring(0, 5)} - ${item['jam_selesai'].substring(0, 5)}",
-                            );
-                          }).toList(),
-                        );
-                      },
-                    ),
-                  ],
-                ),
+            Positioned(
+              right: -30, top: -30,
+              child: CircleAvatar(radius: 80, backgroundColor: orangeMain.withOpacity(0.05)),
+            ),
+            Positioned(
+              right: 20, bottom: -40,
+              child: CircleAvatar(radius: 60, backgroundColor: orangeDark.withOpacity(0.08)),
+            ),
+            
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(day, style: TextStyle(fontSize: 55, fontWeight: FontWeight.w900, color: orangeMain, height: 1)),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Text(suffix, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: themeProvider.textColor)),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(dayName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          Text(monthYear, style: TextStyle(color: themeProvider.subTextColor, fontSize: 13)),
+                        ],
+                      ),
+                      
+                      // POINT DESIGN (Horizontal & Glassy) - Sinkron dengan Provider
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [orangeMain, orangeDark.withOpacity(0.9)],
+                          ),
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: [
+                            BoxShadow(
+                              color: orangeDark.withOpacity(0.3),
+                              blurRadius: 12,
+                              offset: const Offset(0, 6),
+                            )
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(points.toString(), style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900, height: 1)),
+                                const Text("PTS", style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                              ],
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              height: 30, width: 1,
+                              color: Colors.white.withOpacity(0.3),
+                            ),
+                            const SizedBox(width: 8),
+                            const Icon(Icons.stars_rounded, color: Colors.white, size: 24),
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+                  const WeekStatus(),
+                ],
               ),
             ),
           ],
@@ -411,179 +308,67 @@ class _HomePageState extends State<HomePage> {
 
   Widget _permissionCard(BuildContext context, ThemeProvider themeProvider) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            orangeMain.withOpacity(themeProvider.isDarkMode ? 0.2 : 0.1),
-            themeProvider.cardColor
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: themeProvider.cardColor,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-            color: orangeSoft.withOpacity(themeProvider.isDarkMode ? 0.2 : 0.5),
-            width: 1.5),
+        border: Border.all(color: orangeMain.withOpacity(0.15)),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-                color: orangeMain, borderRadius: BorderRadius.circular(15)),
-            child: const Icon(Icons.edit_calendar_rounded,
-                color: Colors.white, size: 28),
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(color: orangeMain.withOpacity(0.1), shape: BoxShape.circle),
+            child: Icon(Icons.edit_calendar_rounded, color: orangeMain, size: 22),
           ),
-          const SizedBox(width: 15),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Lapor Izin atau Sakit?",
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: themeProvider.textColor)),
-                const SizedBox(height: 4),
-                Text("Lapor kehadiran manual di sini",
-                    style: TextStyle(
-                        fontSize: 13, color: themeProvider.subTextColor)),
+                Text("Lapor Izin/Sakit?", style: TextStyle(fontWeight: FontWeight.bold, color: themeProvider.textColor, fontSize: 14)),
+                Text("Input kehadiran manual", style: TextStyle(fontSize: 11, color: themeProvider.subTextColor)),
               ],
             ),
           ),
-          ElevatedButton(
-            onPressed: () => _showPermissionForm(context, themeProvider),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: orangeMain,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              elevation: 0,
+          SizedBox(
+            height: 36,
+            child: ElevatedButton(
+              onPressed: () => _showPermissionForm(context, themeProvider),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: orangeMain, 
+                foregroundColor: Colors.white, 
+                elevation: 0, 
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
+              ),
+              child: const Text("Input", style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
             ),
-            child: const Text("Input"),
-          ),
+          )
         ],
       ),
     );
   }
 
-  Widget _dateCard(ThemeProvider themeProvider, String day, String suffix,
-      String dayName, String monthYear) {
-    return Container(
-      decoration: BoxDecoration(
-        color: themeProvider.cardColor,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-              color: Colors.black
-                  .withOpacity(themeProvider.isDarkMode ? 0.3 : 0.05))
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: Stack(
-          children: [
-            Positioned(
-              right: -60,
-              top: -40,
-              child: Container(
-                  width: 180,
-                  height: 180,
-                  decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: orangeSoft.withOpacity(
-                          themeProvider.isDarkMode ? 0.1 : 0.4))),
+  Widget _buildScheduleList(String dayName) {
+    return FutureBuilder<Map<String, dynamic>>(
+      future: ApiService.fetchJadwalGuru(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()));
+        final List rawData = snapshot.data?['data'] ?? [];
+        final List filtered = rawData.where((item) => item['hari'].toString().toLowerCase() == dayName.toLowerCase()).toList();
+        if (filtered.isEmpty) return const Center(child: Padding(padding: EdgeInsets.all(20), child: Text("Tidak ada jadwal hari ini.")));
+        return Column(
+          children: filtered.map((item) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: ScheduleCard(
+              subject: item['mata_pelajaran'] ?? '-',
+              teacher: item['guru']['nama'] ?? 'Guru',
+              time: item['jam_mulai'] != null ? "${item['jam_mulai'].substring(0, 5)} - ${item['jam_selesai'].substring(0, 5)}" : "-",
             ),
-            Positioned(
-              right: -30,
-              bottom: -40,
-              child: Container(
-                width: 140,
-                height: 140,
-                decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(colors: [orangeMain, orangeDark])),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      RichText(
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text: day,
-                              style: TextStyle(
-                                fontSize: 62,
-                                fontWeight: FontWeight.w800,
-                                fontFamily: 'Montserrat',
-                                color: orangeDark,
-                                letterSpacing: -2,
-                              ),
-                            ),
-                            WidgetSpan(
-                              child: Transform.translate(
-                                offset: const Offset(2, -30),
-                                child: Text(
-                                  suffix,
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w700,
-                                    fontFamily: 'Montserrat',
-                                    color: themeProvider.textColor,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 14),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(dayName,
-                                style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w700,
-                                    color: orangeMain)),
-                            const SizedBox(height: 4),
-                            Text(monthYear,
-                                style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: themeProvider.subTextColor)),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Text("This Week Status",
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: themeProvider.textColor,
-                      )),
-                  const SizedBox(height: 10),
-                  const WeekStatus(),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+          )).toList(),
+        );
+      },
     );
   }
 }

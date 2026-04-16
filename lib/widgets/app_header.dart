@@ -9,6 +9,7 @@ const orangeMain = Color(0xFFFE6F47);
 class AppHeader extends StatelessWidget {
   const AppHeader({super.key});
 
+  // Fungsi untuk memotong nama agar tidak terlalu panjang
   String _shortName(String fullName) {
     final parts = fullName.trim().split(' ');
     if (parts.length >= 2) {
@@ -22,11 +23,10 @@ class AppHeader extends StatelessWidget {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDark = themeProvider.isDarkMode;
 
+    // Ambil data dari Session
     final fullName = Session.studentName ?? 'Siswa';
+    final studentClass = Session.studentClass ?? '-';
     final shortName = _shortName(fullName);
-
-    // 🔥 AMBIL DARI PROVIDER (INI YANG PENTING)
-    final points = themeProvider.studentPoints;
 
     return SafeArea(
       bottom: false,
@@ -35,6 +35,7 @@ class AppHeader extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            // Tombol Notifikasi
             _buildIconButton(
               icon: Icons.notifications_outlined,
               onTap: () {},
@@ -42,6 +43,7 @@ class AppHeader extends StatelessWidget {
               themeProvider: themeProvider,
             ),
 
+            // Profile Card (Nama & Kelas)
             Expanded(
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 15),
@@ -67,6 +69,7 @@ class AppHeader extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 6),
                       child: Row(
                         children: [
+                          // Avatar Lingkaran
                           Container(
                             padding: const EdgeInsets.all(2),
                             decoration: const BoxDecoration(
@@ -90,8 +93,8 @@ class AppHeader extends StatelessWidget {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 10),
-
+                          const SizedBox(width: 12),
+                          // Nama dan Kelas
                           Expanded(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -104,22 +107,17 @@ class AppHeader extends StatelessWidget {
                                     fontSize: 13,
                                     fontWeight: FontWeight.bold,
                                     color: themeProvider.textColor,
+                                    height: 1.1,
                                   ),
                                 ),
                                 const SizedBox(height: 2),
-                                Row(
-                                  children: [
-                                    const Icon(Icons.stars,
-                                        size: 12, color: Color(0xFFFFB800)),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '$points Poin',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        color: themeProvider.subTextColor,
-                                      ),
-                                    ),
-                                  ],
+                                Text(
+                                  studentClass,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: orangeMain, // Warna Orange untuk Kelas
+                                  ),
                                 ),
                               ],
                             ),
@@ -132,6 +130,7 @@ class AppHeader extends StatelessWidget {
               ),
             ),
 
+            // Tombol Menu Drawer
             _buildIconButton(
               icon: Icons.notes_rounded,
               onTap: () => Scaffold.of(context).openEndDrawer(),
@@ -168,9 +167,10 @@ class AppHeader extends StatelessWidget {
               child: Container(
                 height: 10,
                 width: 10,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: Colors.red,
                   shape: BoxShape.circle,
+                  border: Border.all(color: themeProvider.cardColor, width: 1.5),
                 ),
               ),
             ),
