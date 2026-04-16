@@ -179,6 +179,26 @@ class ApiService {
     }
   }
 
+  static Future<List<dynamic>> fetchMyVouchers(int studentId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/my-vouchers/$studentId'),
+        headers: _headers(),
+      );
+
+      final result = _processResponse(response);
+
+      if (result['success'] == true && result['data'] != null) {
+        return result['data'];
+      } else {
+        return [];
+      }
+    } catch (e) {
+      print('Error inventory: $e');
+      return [];
+    }
+  }
+
   // Helper function untuk memproses response & handling status code
   static Map<String, dynamic> _processResponse(http.Response response) {
     try {

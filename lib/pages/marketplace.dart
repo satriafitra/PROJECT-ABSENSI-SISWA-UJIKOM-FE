@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../utils/session.dart';
 import '../providers/theme_provider.dart';
 import '../services/api_services.dart';
+import 'package:absensi_app/pages/inventory.dart';
 
 // ================= HELPER: TICKET CLIPPER =================
 // Digunakan untuk membuat lubang tiket yang benar-benar terpotong (transparan)
@@ -147,6 +148,17 @@ class _MarketplacePageState extends State<MarketplacePage> {
               fontSize: 20),
         ),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.inventory_2_outlined),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const InventoryPage()),
+              );
+            },
+          )
+        ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -167,11 +179,14 @@ class _MarketplacePageState extends State<MarketplacePage> {
             child: isLoading
                 ? const Center(
                     child: CircularProgressIndicator(color: primaryOrange))
-                : ListView.builder( // Menggunakan ListView agar card lebar terlihat elegan
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                : ListView.builder(
+                    // Menggunakan ListView agar card lebar terlihat elegan
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 10),
                     itemCount: filteredProducts.length,
                     itemBuilder: (context, index) {
-                      return _buildProductCard(filteredProducts[index], themeProvider);
+                      return _buildProductCard(
+                          filteredProducts[index], themeProvider);
                     },
                   ),
           ),
@@ -221,7 +236,8 @@ class _MarketplacePageState extends State<MarketplacePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(20),
@@ -306,7 +322,8 @@ class _MarketplacePageState extends State<MarketplacePage> {
                             offset: const Offset(0, 4))
                       ]
                     : [],
-                border: isSelected ? null : Border.all(color: Colors.grey.shade200),
+                border:
+                    isSelected ? null : Border.all(color: Colors.grey.shade200),
               ),
               alignment: Alignment.center,
               child: Text(
@@ -323,12 +340,31 @@ class _MarketplacePageState extends State<MarketplacePage> {
   }
 
   // ================= WIDGET: PREMIUM PRODUCT CARD (VOUCHER DESIGN) =================
-  Widget _buildProductCard(Map<String, dynamic> product, ThemeProvider themeProvider) {
+  Widget _buildProductCard(
+      Map<String, dynamic> product, ThemeProvider themeProvider) {
     Color getPrimaryColor() {
       switch (product['theme']) {
-        case 'izin': return const Color(0xFFE53935);
-        case 'fasilitas': return const Color(0xFF1E88E5);
-        default: return const Color(0xFFFF8F00);
+        case 'izin':
+          // Warna Terra Cotta/Soft Red yang harmonis dengan oranye
+          return const Color(0xFFE67E22).withRed(220);
+        case 'fasilitas':
+          // Warna Biru Laut yang modern (Slate Blue)
+          return const Color(0xFF45AAF2);
+        default:
+          // Oranye Branding Utama (Golden Orange)
+          return const Color(0xFFFA8231);
+      }
+    }
+
+    // Warna gradasi untuk kedalaman visual
+    Color getSecondaryColor() {
+      switch (product['theme']) {
+        case 'izin':
+          return const Color(0xFFEB3B5A); // Lebih ke arah pinkish-red agar soft
+        case 'fasilitas':
+          return const Color(0xFF2D98DA);
+        default:
+          return const Color(0xFFF7B731);
       }
     }
 
@@ -338,21 +374,21 @@ class _MarketplacePageState extends State<MarketplacePage> {
         margin: const EdgeInsets.only(bottom: 16),
         child: Stack(
           children: [
-            // Bayangan dibelakang Clipper
+            // Bayangan yang lebih halus (Glow Effect)
             Container(
               height: 110,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: getPrimaryColor().withOpacity(0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 6),
+                    color: getPrimaryColor().withOpacity(0.4),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
                   )
                 ],
               ),
             ),
-            // Bentuk Voucher dengan Lubang Terpotong
+
             ClipPath(
               clipper: TicketClipper(),
               child: Container(
@@ -360,19 +396,23 @@ class _MarketplacePageState extends State<MarketplacePage> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
                   gradient: LinearGradient(
-                    colors: [getPrimaryColor(), getPrimaryColor().withOpacity(0.8)],
+                    colors: [
+                      getPrimaryColor(),
+                      getSecondaryColor(),
+                    ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                 ),
                 child: Row(
                   children: [
-                    // SISI KIRI: KATEGORI
+                    // SISI KIRI: LABEL KATEGORI
                     Container(
                       width: 45,
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.1),
-                        borderRadius: const BorderRadius.horizontal(left: Radius.circular(20)),
+                        color: Colors.black.withOpacity(0.15),
+                        borderRadius: const BorderRadius.horizontal(
+                            left: Radius.circular(20)),
                       ),
                       child: Center(
                         child: RotatedBox(
@@ -381,25 +421,26 @@ class _MarketplacePageState extends State<MarketplacePage> {
                             product['category'].toUpperCase(),
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 9,
+                              fontSize: 10,
                               fontWeight: FontWeight.w900,
-                              letterSpacing: 2,
+                              letterSpacing: 1.5,
                             ),
                           ),
                         ),
                       ),
                     ),
-                    
-                    // PEMISAH: GARIS PUTUS-PUTUS
+
+                    // PEMISAH: GARIS PUTUS-PUTUS (DASHED)
                     CustomPaint(
                       size: const Size(1, double.infinity),
-                      painter: DashLinePainter(Colors.white.withOpacity(0.4)),
+                      painter: DashLinePainter(Colors.white.withOpacity(0.5)),
                     ),
 
                     // ISI VOUCHER
                     Expanded(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -408,8 +449,9 @@ class _MarketplacePageState extends State<MarketplacePage> {
                               product['name'],
                               style: const TextStyle(
                                 color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 17,
+                                letterSpacing: 0.5,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -418,23 +460,29 @@ class _MarketplacePageState extends State<MarketplacePage> {
                             Text(
                               product['description'] ?? '',
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.8),
-                                fontSize: 11,
+                                color: Colors.white.withOpacity(0.9),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w400,
                               ),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
                             const Spacer(),
+                            // Badge Harga yang lebih kontras (Glassmorphism style)
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(8),
+                                color: Colors.white.withOpacity(0.25),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                    color: Colors.white.withOpacity(0.3)),
                               ),
                               child: Text(
                                 "${product['price']} PTS",
                                 style: const TextStyle(
                                   color: Colors.white,
+                                  fontSize: 13,
                                   fontWeight: FontWeight.w900,
                                 ),
                               ),
@@ -443,11 +491,15 @@ class _MarketplacePageState extends State<MarketplacePage> {
                         ),
                       ),
                     ),
-                    // ICON PEMANIS
+
+                    // ICON PEMANIS (Opacity ditingkatkan sedikit)
                     Padding(
                       padding: const EdgeInsets.only(right: 16),
-                      child: Icon(Icons.confirmation_num_outlined, 
-                          color: Colors.white.withOpacity(0.2), size: 40),
+                      child: Icon(
+                        _getIconByTheme(product['theme']),
+                        color: Colors.white.withOpacity(0.25),
+                        size: 44,
+                      ),
                     )
                   ],
                 ),
@@ -457,6 +509,18 @@ class _MarketplacePageState extends State<MarketplacePage> {
         ),
       ),
     );
+  }
+
+// Helper untuk icon agar iconnya juga beda tiap tema
+  IconData _getIconByTheme(String theme) {
+    switch (theme) {
+      case 'izin':
+        return Icons.event_available_rounded;
+      case 'fasilitas':
+        return Icons.home_repair_service_rounded;
+      default:
+        return Icons.stars_rounded;
+    }
   }
 
   // ================= WIDGET: BOTTOM SHEET KONFIRMASI =================
