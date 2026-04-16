@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import '../utils/session.dart';
 // Ganti 'your_project_name' dengan nama project kamu yang ada di pubspec.yaml
 import 'package:absensi_app/models/assessment_model.dart';
 
@@ -196,6 +197,28 @@ class ApiService {
     } catch (e) {
       print('Error inventory: $e');
       return [];
+    }
+  }
+
+  static Future<Map<String, dynamic>> useVoucher({
+    required int voucherId,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/use-voucher"),
+        headers: _headers(), // 🔥 PENTING (JSON HEADER)
+        body: jsonEncode({
+          "voucher_id": voucherId,
+          "student_id": Session.id,
+        }),
+      );
+
+      return _processResponse(response);
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Gagal koneksi server: $e',
+      };
     }
   }
 

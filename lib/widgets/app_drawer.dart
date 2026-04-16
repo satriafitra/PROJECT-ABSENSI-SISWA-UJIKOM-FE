@@ -8,7 +8,6 @@ import '../pages/pengaturan.dart';
 import '../pages/riwayat_absensi.dart'; // Sesuaikan path riwayat absensi Anda
 import '../providers/theme_provider.dart'; // Sesuaikan path provider Anda
 import '../pages/assessment.dart'; // Sesuaikan path provider Anda
-import '../pages/marketplace.dart'; // Sesuaikan path provider Anda
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -139,19 +138,6 @@ class AppDrawer extends StatelessWidget {
                         text: 'ID Siswa tidak ditemukan, silakan login ulang.',
                       );
                     }
-                  },
-                ),
-                _buildMenuItem(
-                  context,
-                  themeProvider: themeProvider,
-                  icon: Icons.shopping_bag_outlined, // Icon belanja
-                  title: "Siswa Shop",
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const MarketplacePage()),
-                    );
                   },
                 ),
               ],

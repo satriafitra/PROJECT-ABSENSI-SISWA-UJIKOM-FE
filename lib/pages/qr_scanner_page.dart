@@ -2,14 +2,12 @@ import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:audioplayers/audioplayers.dart'; // <-- import audioplayers
-import 'package:geolocator/geolocator.dart'; // Tambahkan ini
+import 'package:audioplayers/audioplayers.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
-
-import '../services/api_services.dart'; // Pastikan path benar
-import '../utils/session.dart'; // Pastikan path benar
-import 'riwayat_absensi.dart'; // Pastikan path benar
+import '../services/api_services.dart';
+import '../utils/session.dart';
+import 'riwayat_absensi.dart';
 
 class QrScanPage extends StatefulWidget {
   const QrScanPage({super.key});
@@ -31,23 +29,17 @@ class _QrScanPageState extends State<QrScanPage>
   @override
   void initState() {
     super.initState();
-
     cameraController = MobileScannerController(
       formats: [BarcodeFormat.qrCode],
       detectionSpeed: DetectionSpeed.noDuplicates,
     );
-
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2500),
     )..repeat(reverse: true);
-
-    // Animasi lebih halus dengan curve easeInOutSine
     _lineAnimation = Tween<double>(begin: 0.05, end: 0.95).animate(
-      CurvedAnimation(
-          parent: _animationController, curve: Curves.easeInOutSine),
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOutSine),
     );
-
     _audioPlayer = AudioPlayer();
   }
 
@@ -55,7 +47,7 @@ class _QrScanPageState extends State<QrScanPage>
   void dispose() {
     _animationController.dispose();
     cameraController.dispose();
-    _audioPlayer.dispose(); // <-- dispose player
+    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -76,31 +68,29 @@ class _QrScanPageState extends State<QrScanPage>
       );
 
       if (response != null && response['status'] == true) {
-        // --- LOGIKA SINKRONISASI POIN ---
         if (response['detail'] != null &&
             response['detail']['total_poin_skrg'] != null) {
           int pointBaru = response['detail']['total_poin_skrg'];
-
-          // 1. Update di Session (untuk persistensi data)
           await Session.updatePoints(pointBaru);
-
-          // 2. Update di ThemeProvider (agar AppHeader langsung berubah angkanya)
           if (mounted) {
             Provider.of<ThemeProvider>(context, listen: false)
                 .updatePoints(pointBaru);
           }
         }
-        // --------------------------------
 
         cameraController.stop();
         if (!mounted) return;
 
-        _showCustomSnackBar(
-            response['message'] ?? 'Absensi berhasil', Colors.green);
-
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const RiwayatAbsensiPage()),
+        // Tampilkan Feedback Berhasil
+        _showModernAlert(
+          isSuccess: true,
+          message: response['message'] ?? 'Absensi berhasil tercatat!',
+          onTap: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const RiwayatAbsensiPage()),
+            );
+          },
         );
       } else {
         throw response['message'] ?? 'Gagal melakukan absensi';
@@ -108,19 +98,105 @@ class _QrScanPageState extends State<QrScanPage>
     } catch (e) {
       isProcessing = false;
       qrCode = null;
-      _showCustomSnackBar(e.toString(), Colors.redAccent);
+      // Tampilkan Feedback Gagal
+      _showModernAlert(
+        isSuccess: false,
+        message: e.toString(),
+        onTap: () => Navigator.pop(context),
+      );
     }
   }
 
-  void _showCustomSnackBar(String message, Color color) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content:
-            Text(message, style: const TextStyle(fontWeight: FontWeight.w500)),
-        backgroundColor: color,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
+  // MODIFIKASI: UI Alert Baru yang Mewah & Menarik
+  void _showModernAlert({
+    required bool isSuccess,
+    required String message,
+    required VoidCallback onTap,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isDismissible: false,
+      enableDrag: false,
+      builder: (context) {
+        return BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+            decoration: BoxDecoration(
+              color: isSuccess 
+                  ? Colors.white.withOpacity(0.9) 
+                  : const Color(0xFF1A1A1A).withOpacity(0.9),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(40)),
+              border: Border.all(color: Colors.white.withOpacity(0.2)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Icon Indikator
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isSuccess ? Colors.orange.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isSuccess ? Icons.check_circle_rounded : Icons.error_outline_rounded,
+                    color: isSuccess ? Colors.orange : Colors.redAccent,
+                    size: 64,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Judul
+                Text(
+                  isSuccess ? "Berhasil!" : "Gagal!",
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: isSuccess ? Colors.black87 : Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Pesan
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: isSuccess ? Colors.black54 : Colors.white70,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                // Tombol Aksi Mewah
+                SizedBox(
+                  width: double.infinity,
+                  height: 60,
+                  child: ElevatedButton(
+                    onPressed: onTap,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isSuccess ? Colors.orange : Colors.redAccent,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                    child: Text(
+                      isSuccess ? "Lihat Riwayat" : "Coba Lagi",
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -133,7 +209,6 @@ class _QrScanPageState extends State<QrScanPage>
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // 1. Full Screen Scanner
           MobileScanner(
             controller: cameraController,
             onDetect: (capture) {
@@ -145,8 +220,6 @@ class _QrScanPageState extends State<QrScanPage>
               }
             },
           ),
-
-          // 2. Black Overlay (Dimmed Background)
           Container(
             decoration: ShapeDecoration(
               shape: QrScannerOverlayShape(
@@ -158,8 +231,6 @@ class _QrScanPageState extends State<QrScanPage>
               ),
             ),
           ),
-
-          // 3. Smooth Laser Animation
           Center(
             child: SizedBox(
               width: cutOutSize,
@@ -210,8 +281,6 @@ class _QrScanPageState extends State<QrScanPage>
               ),
             ),
           ),
-
-          // 4. Premium Top Bar
           Positioned(
             top: MediaQuery.of(context).padding.top + 15,
             left: 20,
@@ -235,8 +304,6 @@ class _QrScanPageState extends State<QrScanPage>
               ],
             ),
           ),
-
-          // 5. Elegant Instruction Bottom
           Positioned(
             bottom: 60,
             left: 40,
@@ -305,7 +372,7 @@ class _QrScanPageState extends State<QrScanPage>
   }
 }
 
-// ================= CUSTOM SCANNER OVERLAY PAINTER =================
+// QR Scanner Overlay Painter tetap sama...
 class QrScannerOverlayShape extends ShapeBorder {
   final Color borderColor;
   final double borderWidth;
@@ -336,7 +403,6 @@ class QrScannerOverlayShape extends ShapeBorder {
   void paint(Canvas canvas, Rect rect, {TextDirection? textDirection}) {
     final width = rect.width;
     final height = rect.height;
-
     final paint = Paint()
       ..color = Colors.black.withOpacity(0.7)
       ..style = PaintingStyle.fill;
@@ -347,7 +413,6 @@ class QrScannerOverlayShape extends ShapeBorder {
       height: cutOutSize,
     );
 
-    // Drawing the background mask
     canvas.drawPath(
       Path.combine(
         PathOperation.difference,
@@ -359,14 +424,12 @@ class QrScannerOverlayShape extends ShapeBorder {
       paint,
     );
 
-    // Drawing the elegant borders
     final borderPaint = Paint()
       ..color = borderColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = borderWidth
       ..strokeCap = StrokeCap.round;
 
-    final double offset = borderWidth / 2;
     final double radius = borderRadius;
     final double length = borderLength;
 

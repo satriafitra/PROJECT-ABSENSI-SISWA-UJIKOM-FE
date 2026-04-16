@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../utils/session.dart';
 import '../providers/theme_provider.dart';
 import '../services/api_services.dart';
-import 'package:absensi_app/pages/inventory.dart';
 
 // ================= HELPER: TICKET CLIPPER =================
 // Digunakan untuk membuat lubang tiket yang benar-benar terpotong (transparan)
@@ -148,17 +147,7 @@ class _MarketplacePageState extends State<MarketplacePage> {
               fontSize: 20),
         ),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.inventory_2_outlined),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const InventoryPage()),
-              );
-            },
-          )
-        ],
+       
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -204,7 +193,10 @@ class _MarketplacePageState extends State<MarketplacePage> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
         gradient: const LinearGradient(
-          colors: [primaryOrange, Color(0xFFFB8C00)],
+          colors: [
+            Color.fromARGB(255, 211, 75, 29),
+            Color.fromARGB(255, 255, 163, 51)
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -345,28 +337,31 @@ class _MarketplacePageState extends State<MarketplacePage> {
     Color getPrimaryColor() {
       switch (product['theme']) {
         case 'izin':
-          // Warna Terra Cotta/Soft Red yang harmonis dengan oranye
-          return const Color(0xFFE67E22).withRed(220);
+          return const Color(0xFFEE5253); // Warm Red
         case 'fasilitas':
-          // Warna Biru Laut yang modern (Slate Blue)
-          return const Color(0xFF45AAF2);
+          return const Color(
+              0xFF00D2D3); // Cyan/Teal (Kontras segar untuk Oranye)
+        case 'voucher':
+          return const Color(0xFF5F27CD); // Indigo/Purple (Eksklusif)
         default:
-          // Oranye Branding Utama (Golden Orange)
-          return const Color(0xFFFA8231);
+          return const Color(0xFFFF8C00); // Golden Orange (Branding)
       }
     }
 
-    // Warna gradasi untuk kedalaman visual
     Color getSecondaryColor() {
       switch (product['theme']) {
         case 'izin':
-          return const Color(0xFFEB3B5A); // Lebih ke arah pinkish-red agar soft
+          return const Color(0xFFFF6B6B); // Lighter Red
         case 'fasilitas':
-          return const Color(0xFF2D98DA);
+          return const Color(0xFF01A3A4); // Darker Teal
+        case 'voucher':
+          return const Color(0xFF341F97); // Deep Purple
         default:
-          return const Color(0xFFF7B731);
+          return const Color(0xFFFECA57); // Warm Yellow/Orange
       }
     }
+
+    
 
     return GestureDetector(
       onTap: () => handleBuy(product),

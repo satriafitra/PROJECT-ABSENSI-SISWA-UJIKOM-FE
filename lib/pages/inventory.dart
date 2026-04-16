@@ -35,6 +35,37 @@ class _InventoryPageState extends State<InventoryPage> {
     }
   }
 
+  Future<void> _useVoucher(int voucherId) async {
+    try {
+      final res = await ApiService.useVoucher(voucherId: voucherId);
+
+      if (res['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("1 token berhasil diaktifkan"),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        fetchData();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(res['message'] ?? "Gagal menggunakan voucher"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Terjadi kesalahan"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,7 +75,7 @@ class _InventoryPageState extends State<InventoryPage> {
         backgroundColor: Colors.white,
         centerTitle: true,
         title: const Text(
-          "Voucher Saya",
+          "Inventory Voucher",
           style: TextStyle(
             color: Color(0xFF1A1A1A),
             fontWeight: FontWeight.w800,
@@ -66,7 +97,6 @@ class _InventoryPageState extends State<InventoryPage> {
     );
   }
 
-  // ================= EMPTY STATE =================
   Widget _buildEmptyState() {
     return const Center(
       child: Column(
@@ -75,229 +105,93 @@ class _InventoryPageState extends State<InventoryPage> {
           Icon(Icons.confirmation_number_outlined,
               size: 80, color: Colors.grey),
           SizedBox(height: 16),
-          Text(
-            "Belum ada voucher",
-            style: TextStyle(color: Colors.grey),
-          ),
+          Text("Belum ada voucher",
+              style: TextStyle(color: Colors.grey)),
         ],
       ),
     );
   }
 
-  // ================= CARD =================
   Widget _buildVoucherCard(Map<String, dynamic> v) {
-    final bool isUsed = v['used'] == true;
+    final String status = (v['status'] ?? 'AVAILABLE').toString();
+    final bool isActivated = v['attendance_id'] != null;
+    final bool isAvailable = status == 'AVAILABLE';
 
     final String name = (v['name'] ?? 'Voucher').toString();
     final String description = (v['description'] ?? '-').toString();
-    final String category = (v['category'] ?? 'umum').toString();
-    final String createdAt = (v['created_at'] ?? '-').toString();
-
-    final int pointsSpent = int.tryParse(
-          v['points_spent']?.toString() ?? '0',
-        ) ??
-        0;
-
-    final Color themeColor = _getCategoryColor(category);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
+            blurRadius: 10,
+            offset: const Offset(0, 6),
+          )
         ],
       ),
-      child: ClipPath(
-        clipper: TicketClipper(),
-        child: Container(
-          color: Colors.white,
-          child: Column(
-            children: [
-              // ================= TOP =================
-              Padding(
-                padding: const EdgeInsets.all(18),
-                child: Row(
-                  children: [
-                    Container(
-                      height: 50,
-                      width: 50,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          colors: isUsed
-                              ? [Colors.grey.shade300, Colors.grey.shade400]
-                              : [themeColor.withOpacity(0.8), themeColor],
-                        ),
-                      ),
-                      child: Icon(
-                        _getCategoryIcon(category),
-                        color: Colors.white,
-                        size: 26,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(16),
 
-                    // TEXT
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            name,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: isUsed ? Colors.grey : Colors.black,
-                              decoration:
-                                  isUsed ? TextDecoration.lineThrough : null,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            description,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // POINT
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          "-$pointsSpent",
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color:
-                                isUsed ? Colors.grey : Colors.redAccent,
-                          ),
-                        ),
-                        const Text(
-                          "PTS",
-                          style: TextStyle(fontSize: 10, color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              // ================= DASH LINE =================
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  children: List.generate(
-                    25,
-                    (i) => Expanded(
-                      child: Container(
-                        height: 2,
-                        color:
-                            i.isEven ? Colors.transparent : Colors.grey[200],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-
-              // ================= BOTTOM =================
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                color: isUsed
-                    ? Colors.grey.withOpacity(0.05)
-                    : themeColor.withOpacity(0.05),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.history,
-                            size: 14, color: Colors.grey),
-                        const SizedBox(width: 6),
-                        Text(
-                          createdAt,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: isUsed ? Colors.grey : themeColor,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        isUsed ? "TERPAKAI" : "AKTIF",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            ],
+        // ICON STATUS
+        leading: CircleAvatar(
+          backgroundColor: isActivated
+              ? Colors.green
+              : isAvailable
+                  ? Colors.orange
+                  : Colors.grey,
+          child: Icon(
+            isActivated
+                ? Icons.check
+                : isAvailable
+                    ? Icons.flash_on
+                    : Icons.lock,
+            color: Colors.white,
           ),
         ),
+
+        // TEXT
+        title: Text(
+          name,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(description),
+            const SizedBox(height: 4),
+            Text(
+              isActivated
+                  ? "SUDAH DIPAKAI DI ABSENSI"
+                  : isAvailable
+                      ? "SIAP DIGUNAKAN"
+                      : "TIDAK TERSEDIA",
+              style: TextStyle(
+                color: isActivated
+                    ? Colors.green
+                    : isAvailable
+                        ? Colors.orange
+                        : Colors.grey,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+
+        // BUTTON
+        trailing: (!isAvailable || isActivated)
+            ? const Icon(Icons.lock, color: Colors.grey)
+            : ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                ),
+                onPressed: () => _useVoucher(v['id']),
+                child: const Text("Gunakan"),
+              ),
       ),
     );
   }
-
-  // ================= COLOR =================
-  Color _getCategoryColor(String category) {
-    final c = category.toLowerCase();
-
-    if (c.contains("izin")) return const Color(0xFF6366F1);
-    if (c.contains("fasilitas")) return const Color(0xFF10B981);
-    return const Color(0xFFF59E0B);
-  }
-
-  // ================= ICON =================
-  IconData _getCategoryIcon(String category) {
-    final c = category.toLowerCase();
-
-    if (c.contains("izin")) return Icons.assignment;
-    if (c.contains("fasilitas")) return Icons.home_repair_service;
-    return Icons.confirmation_number;
-  }
-}
-
-// ================= CLIPPER =================
-class TicketClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    final path = Path();
-    const radius = 10.0;
-    final y = size.height * 0.65;
-
-    path.lineTo(0, size.height);
-    path.lineTo(size.width, size.height);
-    path.lineTo(size.width, 0);
-
-    path.addOval(Rect.fromCircle(center: Offset(0, y), radius: radius));
-    path.addOval(Rect.fromCircle(center: Offset(size.width, y), radius: radius));
-
-    return path;
-  }
-
-  @override
-  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
