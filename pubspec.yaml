@@ -24,12 +24,15 @@ dependencies:
   geolocator: ^14.0.2
   provider: ^6.1.5+1
   image_picker: ^1.0.7 # <--- TAMBAHKAN BARIS INI
+  flutter_local_notifications: ^17.1.2
+  timezone: ^0.9.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
   flutter_lints: ^3.0.0
+  flutter_launcher_icons: ^0.13.1
 
 flutter:
   uses-material-design: true
@@ -60,3 +63,9 @@ flutter:
       fonts:
         - asset: lib/fonts/Montserrat/Montserrat-SemiBold.ttf
           weight: 600
+
+flutter_launcher_icons:
+  android: "ic_launcher"
+  ios: true
+  image_path: "lib/images/app_icon.jpg"
+  remove_alpha_ios: true

@@ -73,6 +73,9 @@ class _LoginPageState extends State<LoginPage>
         await prefs.setString('user_name', response['data']['name']);
 
         if (!mounted) return;
+        
+        // Memuat poin ke dalam ThemeProvider agar langsung terupdate di dashboard
+        Provider.of<ThemeProvider>(context, listen: false).loadPointsFromSession();
 
         final String namaSiswa = response['data']['name'] ?? 'Siswa';
         final String kelasSiswa = response['data']['class'] ?? '-';

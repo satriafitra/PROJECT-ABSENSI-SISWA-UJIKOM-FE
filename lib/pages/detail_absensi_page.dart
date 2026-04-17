@@ -3,17 +3,20 @@ import 'package:provider/provider.dart';
 import '../utils/session.dart';
 import 'package:intl/intl.dart';
 import '../providers/theme_provider.dart'; // Pastikan path benar
+import '../services/api_services.dart';
 
 class DetailAbsensiPage extends StatelessWidget {
   final String date;
   final String status;
   final String guruName;
+  final String? imageUrl;
 
   const DetailAbsensiPage({
     super.key,
     required this.date,
     required this.status,
     required this.guruName,
+    this.imageUrl,
   });
 
   // Skema Warna Premium Sunset Orange
@@ -194,10 +197,27 @@ class DetailAbsensiPage extends StatelessWidget {
                             label: 'Guru Pengabsen',
                             value: guruName,
                             icon: Icons.edit_note_rounded,
-                            isLast: true,
+                            isLast: imageUrl == null,
                             isDark: isDark,
                             textColor: themeProvider.textColor,
                           ),
+                          if (imageUrl != null) ...[
+                            const SizedBox(height: 20),
+                            _sectionTitle('BUKTI LAMPIRAN', isDark),
+                            Container(
+                              width: double.infinity,
+                              height: 200,
+                              margin: const EdgeInsets.only(bottom: 12),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade200),
+                                image: DecorationImage(
+                                  image: NetworkImage(ApiService.baseUrl.replaceAll('/api', '/storage/') + imageUrl!),
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                          ],
                           const SizedBox(height: 35),
                           
                           // Action Button

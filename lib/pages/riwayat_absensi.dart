@@ -177,6 +177,7 @@ class _RiwayatAbsensiPageState extends State<RiwayatAbsensiPage> {
                       status: filteredList[index].status,
                       date: filteredList[index].date,
                       guruName: filteredList[index].guruName ?? '-',
+                      imageUrl: filteredList[index].image,
                       themeProvider: themeProvider, // Pass theme
                     );
                   },
@@ -194,6 +195,7 @@ class AttendanceItem extends StatelessWidget {
   final String status;
   final String date;
   final String guruName;
+  final String? imageUrl;
   final ThemeProvider themeProvider;
 
   const AttendanceItem({
@@ -201,6 +203,7 @@ class AttendanceItem extends StatelessWidget {
     required this.status,
     required this.date,
     required this.guruName,
+    this.imageUrl,
     required this.themeProvider,
   });
 
@@ -222,6 +225,7 @@ class AttendanceItem extends StatelessWidget {
               date: date,
               status: status,
               guruName: guruName,
+              imageUrl: imageUrl,
             ),
           ),
         );

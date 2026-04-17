@@ -11,6 +11,7 @@ import 'package:absensi_app/pages/inventory.dart';
 import '../services/api_services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'marketplace.dart';
+import '../services/notification_service.dart';
 // Import halaman inventory kamu di sini; 
 
 class HomePage extends StatefulWidget {
@@ -27,6 +28,12 @@ class _HomePageState extends State<HomePage> {
 
   bool _isSubmitting = false;
   File? _selectedImage;
+
+  @override
+  void initState() {
+    super.initState();
+    NotificationService().requestPermission();
+  }
 
   Future<void> _onRefresh() async {
     setState(() {});
@@ -449,6 +456,13 @@ class _HomePageState extends State<HomePage> {
         if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()));
         final List rawData = snapshot.data?['data'] ?? [];
         final List filtered = rawData.where((item) => item['hari'].toString().toLowerCase() == dayName.toLowerCase()).toList();
+
+        if (snapshot.connectionState == ConnectionState.done && !snapshot.hasError) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            NotificationService().scheduleClassNotifications(filtered);
+          });
+        }
+
         if (filtered.isEmpty) return const Center(child: Padding(padding: EdgeInsets.all(20), child: Text("Tidak ada jadwal hari ini.")));
         return Column(
           children: filtered.map((item) => Padding(

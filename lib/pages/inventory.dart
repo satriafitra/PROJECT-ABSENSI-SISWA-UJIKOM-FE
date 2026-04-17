@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../services/api_services.dart';
 import '../utils/session.dart';
+import '../providers/theme_provider.dart';
+import '../widgets/ticket_clipper.dart'; // Import reusable widget
 
 class InventoryPage extends StatefulWidget {
   const InventoryPage({super.key});
@@ -22,15 +25,19 @@ class _InventoryPageState extends State<InventoryPage> {
   Future<void> fetchData() async {
     try {
       final data = await ApiService.fetchMyVouchers(Session.id!);
-      setState(() {
-        vouchers = data;
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          vouchers = data;
+          isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        vouchers = [];
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          vouchers = [];
+          isLoading = false;
+        });
+      }
     }
   }
 
@@ -39,7 +46,9 @@ class _InventoryPageState extends State<InventoryPage> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(color: Color(0xFFFE6F47)),
+      ),
     );
 
     try {
@@ -47,219 +56,311 @@ class _InventoryPageState extends State<InventoryPage> {
       Navigator.pop(context); // Close loading dialog
 
       if (res['success'] == true) {
-        _showSnackBar("Voucher berhasil diaktifkan", Colors.green);
+        _showSnackBar("Voucher berhasil diaktifkan 🎉", Colors.green);
         fetchData();
       } else {
-        _showSnackBar(res['message'] ?? "Gagal menggunakan voucher", Colors.red);
+        _showSnackBar(res['message'] ?? "Gagal menggunakan voucher", Colors.redAccent);
       }
     } catch (e) {
       Navigator.pop(context);
-      _showSnackBar("Terjadi kesalahan koneksi", Colors.red);
+      _showSnackBar("Terjadi kesalahan koneksi", Colors.redAccent);
     }
   }
 
   void _showSnackBar(String message, Color color) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
+        content: Text(message, style: const TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: color,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        margin: const EdgeInsets.all(15),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(20),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F2F5), // Light greyish-blue background
+      backgroundColor: themeProvider.bgWhite,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color.fromARGB(255, 203, 119, 17), Color.fromARGB(255, 255, 174, 35)], // Modern Gradient
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new, color: themeProvider.textColor, size: 20),
+          onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           "Voucher Saya",
           style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 22,
+            color: themeProvider.textColor,
+            fontWeight: FontWeight.w900,
+            fontSize: 20,
           ),
         ),
         centerTitle: true,
       ),
       body: RefreshIndicator(
+        color: const Color(0xFFFE6F47),
         onRefresh: fetchData,
-        child: isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : vouchers.isEmpty
-                ? _buildEmptyState()
-                : _buildListView(),
+        child: Column(
+          children: [
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "Koleksi Voucher",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            Expanded(
+              child: isLoading
+                  ? const Center(child: CircularProgressIndicator(color: Color(0xFFFE6F47)))
+                  : vouchers.isEmpty
+                      ? _buildEmptyState(themeProvider)
+                      : _buildListView(themeProvider),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildListView() {
+  Widget _buildListView(ThemeProvider themeProvider) {
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
       itemCount: vouchers.length,
       itemBuilder: (context, index) {
-        return _buildModernVoucherCard(vouchers[index]);
+        return _buildPremiumVoucherCard(vouchers[index], themeProvider);
       },
     );
   }
 
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.grey.withOpacity(0.1),
-              shape: BoxShape.circle,
+  Widget _buildEmptyState(ThemeProvider themeProvider) {
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(height: 60),
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFE6F47).withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.confirmation_number_outlined,
+                size: 80,
+                color: Color(0xFFFE6F47),
+              ),
             ),
-            child: Icon(Icons.confirmation_number_outlined, size: 100, color: Colors.grey[400]),
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            "Belum ada voucher tersedia",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.black54),
-          ),
-          const Text("Cek kembali nanti ya!", style: TextStyle(color: Colors.grey)),
-        ],
+            const SizedBox(height: 24),
+            Text(
+              "Belum ada voucher tersedia",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: themeProvider.textColor,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "Yuk, kumpulkan poin dan tukarkan\ndi Siswa Shop!",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: themeProvider.subTextColor,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 60),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildModernVoucherCard(Map<String, dynamic> v) {
+  Widget _buildPremiumVoucherCard(Map<String, dynamic> v, ThemeProvider themeProvider) {
     final String status = (v['status'] ?? 'AVAILABLE').toString();
     final bool isUsed = v['attendance_id'] != null;
     final bool isActive = status == 'ACTIVE';
     final bool isAvailable = status == 'AVAILABLE';
 
     // UI Configuration based on status
-    Color themeColor = Colors.orange;
+    Color primaryColor = const Color(0xFFFE6F47);
+    Color secondaryColor = const Color(0xFFFF9F67);
     String statusText = "SIAP DIGUNAKAN";
-    IconData iconData = Icons.local_activity;
+    IconData iconData = Icons.local_activity_rounded;
 
     if (isUsed) {
-      themeColor = Colors.grey;
+      primaryColor = const Color(0xFF757575); // Grey
+      secondaryColor = const Color(0xFFBDBDBD);
       statusText = "SUDAH TERPAKAI";
-      iconData = Icons.check_circle;
+      iconData = Icons.check_circle_rounded;
     } else if (isActive) {
-      themeColor = Colors.blue;
+      primaryColor = const Color(0xFF00D2D3); // Teal/Cyan
+      secondaryColor = const Color(0xFF48DBFB);
       statusText = "SEDANG AKTIF";
-      iconData = Icons.timer;
+      iconData = Icons.timer_rounded;
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: themeColor.withOpacity(0.15),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Stack(
+        children: [
+          // Glowing Shadow Effect
+          Container(
+            height: 120,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: primaryColor.withOpacity(0.3),
+                  blurRadius: 15,
+                  offset: const Offset(0, 8),
+                )
+              ],
+            ),
           ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: Stack(
-          children: [
-            // Decorative Circle for "Ticket" feel
-            Positioned(
-              left: -20,
-              top: 40,
-              child: CircleAvatar(radius: 12, backgroundColor: const Color(0xFFF0F2F5)),
-            ),
-            Positioned(
-              right: -20,
-              top: 40,
-              child: CircleAvatar(radius: 12, backgroundColor: const Color(0xFFF0F2F5)),
-            ),
 
-            Padding(
-              padding: const EdgeInsets.all(20),
+          ClipPath(
+            clipper: TicketClipper(),
+            child: Container(
+              height: 120,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                gradient: LinearGradient(
+                  colors: [primaryColor, secondaryColor],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
               child: Row(
                 children: [
-                  // Icon Section
+                  // SISI KIRI: ICON STATUS
                   Container(
-                    height: 60,
-                    width: 60,
+                    width: 45,
                     decoration: BoxDecoration(
-                      color: themeColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(15),
+                      color: Colors.black.withOpacity(0.15),
+                      borderRadius: const BorderRadius.horizontal(left: Radius.circular(20)),
                     ),
-                    child: Icon(iconData, color: themeColor, size: 30),
+                    child: Center(
+                      child: Icon(iconData, color: Colors.white.withOpacity(0.8), size: 24),
+                    ),
                   ),
-                  const SizedBox(width: 16),
 
-                  // Content Section
+                  // PEMISAH: GARIS PUTUS-PUTUS (DASHED)
+                  CustomPaint(
+                    size: const Size(1, double.infinity),
+                    painter: DashLinePainter(Colors.white.withOpacity(0.5)),
+                  ),
+
+                  // ISI VOUCHER
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          v['name'] ?? 'Voucher',
-                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          v['description'] ?? '-',
-                          style: TextStyle(color: Colors.grey[600], fontSize: 13),
-                        ),
-                        const SizedBox(height: 12),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: themeColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(30),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            v['name'] ?? 'Voucher',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 16,
+                              letterSpacing: 0.5,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          child: Text(
-                            statusText,
-                            style: TextStyle(color: themeColor, fontSize: 10, fontWeight: FontWeight.bold),
+                          const SizedBox(height: 4),
+                          Text(
+                            v['description'] ?? '-',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.9),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                      ],
+                          const Spacer(),
+                          // Badge Status
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.25),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.white.withOpacity(0.3)),
+                            ),
+                            child: Text(
+                              statusText,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
 
-                  // Action Button
-                  if (isAvailable && !isUsed)
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: themeColor,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                      ),
-                      onPressed: () => _useVoucher(v['id']),
-                      child: const Text("Pakai", style: TextStyle(fontWeight: FontWeight.bold)),
-                    )
-                  else if (isActive)
-                    const Icon(Icons.hourglass_bottom, color: Colors.blue)
-                  else
-                    const Icon(Icons.lock_clock_outlined, color: Colors.grey),
+                  // SISI KANAN: ACTION BUTTON / STATUS ICON LENGKAP
+                  Container(
+                    padding: const EdgeInsets.only(right: 16, left: 8),
+                    child: _buildActionSection(isAvailable, isUsed, isActive, primaryColor, v['id']),
+                  ),
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
+  }
+
+  Widget _buildActionSection(bool isAvailable, bool isUsed, bool isActive, Color primaryColor, int voucherId) {
+    if (isAvailable && !isUsed) {
+      return ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          foregroundColor: primaryColor,
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        ),
+        onPressed: () => _useVoucher(voucherId),
+        child: const Text("Pakai", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
+      );
+    } else if (isActive) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.hourglass_bottom_rounded, color: Colors.white.withOpacity(0.8), size: 28),
+          const SizedBox(height: 4),
+          const Text("Aktif", style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+        ],
+      );
+    } else {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.check_circle_outline_rounded, color: Colors.white.withOpacity(0.8), size: 28),
+          const SizedBox(height: 4),
+          const Text("Terpakai", style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+        ],
+      );
+    }
   }
 }
