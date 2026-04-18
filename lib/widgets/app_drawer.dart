@@ -8,6 +8,7 @@ import '../pages/pengaturan.dart';
 import '../pages/riwayat_absensi.dart'; // Sesuaikan path riwayat absensi Anda
 import '../providers/theme_provider.dart'; // Sesuaikan path provider Anda
 import '../pages/assessment.dart'; // Sesuaikan path provider Anda
+import '../pages/chart_absensi.dart'; // Import halaman chart absensi
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -138,6 +139,19 @@ class AppDrawer extends StatelessWidget {
                         text: 'ID Siswa tidak ditemukan, silakan login ulang.',
                       );
                     }
+                  },
+                ),
+                _buildMenuItem(
+                  context,
+                  themeProvider: themeProvider,
+                  icon: Icons.pie_chart_rounded,
+                  title: "Statistik Kehadiran",
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const ChartAbsensiPage()),
+                    );
                   },
                 ),
               ],

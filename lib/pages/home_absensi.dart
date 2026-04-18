@@ -11,6 +11,7 @@ import 'package:absensi_app/pages/inventory.dart';
 import '../services/api_services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'marketplace.dart';
+import 'package:shimmer/shimmer.dart';
 import '../services/notification_service.dart';
 // Import halaman inventory kamu di sini; 
 
@@ -93,7 +94,7 @@ class _HomePageState extends State<HomePage> {
               Text("Today Schedule", 
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: themeProvider.textColor)),
               const SizedBox(height: 12), 
-              _buildScheduleList(dayName),
+              _buildScheduleList(dayName, themeProvider),
             ],
           ),
         ),
@@ -449,11 +450,13 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildScheduleList(String dayName) {
+  Widget _buildScheduleList(String dayName, ThemeProvider themeProvider) {
     return FutureBuilder<Map<String, dynamic>>(
       future: ApiService.fetchJadwalGuru(),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()));
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return _buildShimmerScheduleList(themeProvider);
+        }
         final List rawData = snapshot.data?['data'] ?? [];
         final List filtered = rawData.where((item) => item['hari'].toString().toLowerCase() == dayName.toLowerCase()).toList();
 
@@ -475,6 +478,63 @@ class _HomePageState extends State<HomePage> {
           )).toList(),
         );
       },
+    );
+  }
+
+  Widget _buildShimmerScheduleList(ThemeProvider themeProvider) {
+    return Column(
+      children: List.generate(3, (index) => Padding(
+        padding: const EdgeInsets.only(bottom: 14),
+        child: Shimmer.fromColors(
+          baseColor: themeProvider.isDarkMode ? Colors.grey[800]! : Colors.grey[300]!,
+          highlightColor: themeProvider.isDarkMode ? Colors.grey[700]! : Colors.grey[100]!,
+          child: Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: themeProvider.isDarkMode ? Colors.black26 : Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: Colors.grey.withOpacity(0.1)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 150,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(width: 50, height: 12, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6))),
+                        const SizedBox(height: 4),
+                        Container(width: 80, height: 14, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(7))),
+                      ],
+                    ),
+                    const SizedBox(width: 20),
+                    Container(height: 28, width: 1, color: Colors.white),
+                    const SizedBox(width: 20),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(width: 40, height: 12, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6))),
+                        const SizedBox(height: 4),
+                        Container(width: 90, height: 14, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(7))),
+                      ],
+                    ),
+                  ],
+                )
+              ],
+            ),
+          ),
+        ),
+      )),
     );
   }
 }

@@ -257,6 +257,7 @@ class _KalenderPageState extends State<KalenderPage> {
     final String? status = hasAttended ? _attendanceData[dateKey]!.status.toUpperCase() : null;
     final bool isToday = DateUtils.isSameDay(date, today);
     final bool isSelected = selectedDate != null && DateUtils.isSameDay(selectedDate, date);
+    final bool isWeekend = date.weekday == DateTime.saturday || date.weekday == DateTime.sunday;
 
     Color statusColor = _getStatusColor(status);
     BoxDecoration decoration;
@@ -286,6 +287,9 @@ class _KalenderPageState extends State<KalenderPage> {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: themeProvider.isDarkMode ? Colors.white10 : const Color(0xFFF5F5F5), width: 1),
       );
+      if (isWeekend) {
+        textColor = Colors.redAccent;
+      }
     }
 
     return GestureDetector(

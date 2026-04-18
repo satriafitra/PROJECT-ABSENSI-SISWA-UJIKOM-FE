@@ -66,37 +66,101 @@ class _RiwayatAbsensiPageState extends State<RiwayatAbsensiPage> {
 
     return Scaffold(
       backgroundColor: themeProvider.bgWhite, // Dinamis
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: CircleAvatar(
-            backgroundColor: themeProvider.cardColor, // Dinamis
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new,
-                  color: Color(0xFFFF5722), size: 18),
-              onPressed: () => Navigator.maybePop(context),
-            ),
-          ),
-        ),
-        title: const Text(
-          'KEHADIRAN SISWA',
-          style: TextStyle(
-            color: Color(0xFFFF5722),
-            fontWeight: FontWeight.w900,
-            letterSpacing: 1.5,
-            fontSize: 18,
-          ),
-        ),
-        centerTitle: true,
-      ),
       body: Column(
         children: [
+          // ===== CUSTOM HEADER DENGAN GAMBAR =====
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.only(top: 50, left: 24, right: 24, bottom: 25),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFFF7A30), Color(0xFFFF3B1F)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(35),
+                bottomRight: Radius.circular(35),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFFF3B1F).withOpacity(0.3),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    GestureDetector(
+                      onTap: () => Navigator.maybePop(context),
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.25),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+                      ),
+                    ),
+                    const SizedBox(height: 25),
+                    const Text(
+                      'Riwayat\nAbsensi',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 32,
+                        height: 1.1,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Text(
+                        'Pantau kehadiranmu disini',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                // Gambar Karakter Pindah Kesini!
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.bottomRight,
+                    child: Transform.scale(
+                      scaleX: -1, // Flip jika diperlukan sesuai keinginan desain
+                      child: Image.asset(
+                        'lib/images/char.png',
+                        height: 140,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) => const SizedBox(), 
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          const SizedBox(height: 20),
+
           // ===== UI FILTER SECTION =====
           Container(
-            height: 60,
-            padding: const EdgeInsets.symmetric(vertical: 10),
+            height: 50,
+            margin: const EdgeInsets.only(bottom: 10),
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -105,36 +169,35 @@ class _RiwayatAbsensiPageState extends State<RiwayatAbsensiPage> {
                 bool isSelected = selectedFilter == filters[index];
                 IconData filterIcon;
                 switch (filters[index]) {
-                  case "Hari Ini": filterIcon = Icons.today; break;
-                  case "Minggu Ini": filterIcon = Icons.date_range; break;
-                  case "Bulan Lalu": filterIcon = Icons.history; break;
-                  default: filterIcon = Icons.apps;
+                  case "Hari Ini": filterIcon = Icons.today_rounded; break;
+                  case "Minggu Ini": filterIcon = Icons.date_range_rounded; break;
+                  case "Bulan Lalu": filterIcon = Icons.history_rounded; break;
+                  default: filterIcon = Icons.apps_rounded;
                 }
 
                 return GestureDetector(
                   onTap: () => setState(() => selectedFilter = filters[index]),
                   child: Container(
                     margin: const EdgeInsets.only(right: 12),
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    padding: const EdgeInsets.symmetric(horizontal: 18),
                     decoration: BoxDecoration(
-                      color: isSelected ? const Color(0xFFFF5722) : themeProvider.cardColor,
-                      borderRadius: BorderRadius.circular(30),
+                      color: isSelected 
+                          ? const Color(0xFFFF5722) 
+                          : (themeProvider.isDarkMode ? Colors.white10 : Colors.grey.shade100),
+                      borderRadius: BorderRadius.circular(25),
                       boxShadow: isSelected
                           ? [BoxShadow(color: const Color(0xFFFF5722).withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))]
                           : [],
-                      border: Border.all(
-                        color: isSelected ? Colors.transparent : themeProvider.subTextColor.withOpacity(0.1),
-                      ),
                     ),
                     child: Row(
                       children: [
-                        Icon(filterIcon, size: 16, color: isSelected ? Colors.white : themeProvider.subTextColor),
+                        Icon(filterIcon, size: 18, color: isSelected ? Colors.white : themeProvider.subTextColor),
                         const SizedBox(width: 8),
                         Text(
                           filters[index],
                           style: TextStyle(
                             color: isSelected ? Colors.white : themeProvider.textColor,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w700,
                             fontSize: 13,
                           ),
                         ),
@@ -157,7 +220,14 @@ class _RiwayatAbsensiPageState extends State<RiwayatAbsensiPage> {
 
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return Center(
-                    child: Text('Belum ada riwayat absensi', style: TextStyle(color: themeProvider.subTextColor)),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.history_toggle_off_rounded, size: 60, color: themeProvider.subTextColor.withOpacity(0.5)),
+                        const SizedBox(height: 16),
+                        Text('Belum ada riwayat absensi', style: TextStyle(color: themeProvider.subTextColor, fontSize: 16)),
+                      ],
+                    ),
                   );
                 }
 
@@ -165,12 +235,19 @@ class _RiwayatAbsensiPageState extends State<RiwayatAbsensiPage> {
 
                 if (filteredList.isEmpty) {
                   return Center(
-                    child: Text('Tidak ada data untuk filter ini', style: TextStyle(color: themeProvider.subTextColor)),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.search_off_rounded, size: 60, color: themeProvider.subTextColor.withOpacity(0.5)),
+                        const SizedBox(height: 16),
+                        Text('Tidak ada data untuk filter ini', style: TextStyle(color: themeProvider.subTextColor, fontSize: 16)),
+                      ],
+                    ),
                   );
                 }
 
                 return ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 40),
                   itemCount: filteredList.length,
                   itemBuilder: (context, index) {
                     return AttendanceItem(
@@ -212,8 +289,11 @@ class AttendanceItem extends StatelessWidget {
     final shortName = getShortName(Session.studentName);
     final kelas = Session.studentClass ?? '-';
 
-    final formattedDate = DateTime.tryParse(date) != null
-        ? DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(DateTime.parse(date))
+    final DateTime? parsedDate = DateTime.tryParse(date);
+    final String dayNumber = parsedDate != null ? DateFormat('dd').format(parsedDate) : '-';
+    final String monthName = parsedDate != null ? DateFormat('MMM').format(parsedDate) : '-';
+    final String dayNameAndYear = parsedDate != null 
+        ? DateFormat('EEEE, yyyy', 'id_ID').format(parsedDate) 
         : date;
 
     return InkWell(
@@ -230,127 +310,131 @@ class AttendanceItem extends StatelessWidget {
           ),
         );
       },
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 5, bottom: 10, top: 10),
-            child: Row(
-              children: [
-                Icon(Icons.access_time_filled_rounded, size: 16, color: themeProvider.subTextColor.withOpacity(0.6)),
-                const SizedBox(width: 6),
-                Text(
-                  formattedDate,
-                  style: TextStyle(
-                    color: themeProvider.subTextColor,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: themeProvider.cardColor,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(themeProvider.isDarkMode ? 0.3 : 0.05),
+              blurRadius: 15,
+              offset: const Offset(0, 6),
+            ),
+          ],
+          border: themeProvider.isDarkMode ? Border.all(color: Colors.white10) : null,
+        ),
+        child: Row(
+          children: [
+            // TANGGAL (BLOK KIRI ORANGE)
+            Container(
+              width: 65,
+              height: 75,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFF7A30), Color(0xFFFF3B1F)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFFF3B1F).withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
                   ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            height: 100,
-            decoration: BoxDecoration(
-              color: themeProvider.cardColor, // Dinamis
-              borderRadius: BorderRadius.circular(25),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(themeProvider.isDarkMode ? 0.3 : 0.06),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-              border: themeProvider.isDarkMode 
-                ? Border.all(color: Colors.white.withOpacity(0.05)) 
-                : null,
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(25),
-              child: Stack(
+                ],
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 85,
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [Color.fromARGB(255, 255, 113, 70), Color.fromARGB(255, 255, 66, 8)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                        ),
-                        child: const Center(
-                          child: Icon(Icons.check_circle_rounded, color: Colors.white, size: 34),
-                        ),
-                      ),
-                      const SizedBox(width: 15),
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              shortName,
-                              style: const TextStyle(
-                                color: Color(0xFFFF4D00),
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: themeProvider.isDarkMode ? Colors.white10 : Colors.grey.shade100,
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    kelas,
-                                    style: TextStyle(
-                                      color: themeProvider.textColor.withOpacity(0.7),
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                StatusBadge(status: status.toUpperCase(), isDarkMode: themeProvider.isDarkMode),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                  Text(
+                    dayNumber,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 24,
+                      height: 1.1,
+                    ),
                   ),
-                  Positioned(
-                    right: -10,
-                    bottom: -5,
-                    child: Opacity(
-                      opacity: themeProvider.isDarkMode ? 0.8 : 1.0, // Sedikit redup di dark mode
-                      child: Transform.scale(
-                        scaleX: -1,
-                        child: Image.asset(
-                          'lib/images/char.png',
-                          height: 95,
-                          fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) => const SizedBox(), 
-                        ),
-                      ),
+                  Text(
+                    monthName,
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.9),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
                     ),
                   ),
                 ],
               ),
             ),
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-            child: Divider(color: Color(0x11FF7A50), thickness: 1), // Divider lebih samar
-          ),
-        ],
+            const SizedBox(width: 16),
+            
+            // INFO SISWA (TENGAH)
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    dayNameAndYear,
+                    style: TextStyle(
+                      color: themeProvider.subTextColor,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    shortName,
+                    style: TextStyle(
+                      color: themeProvider.textColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: themeProvider.isDarkMode ? Colors.white10 : Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          kelas,
+                          style: TextStyle(
+                            color: themeProvider.textColor.withOpacity(0.8),
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      StatusBadge(status: status.toUpperCase(), isDarkMode: themeProvider.isDarkMode),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            
+            // ICON PANAH KE KANAN
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: themeProvider.isDarkMode ? Colors.white10 : Colors.grey.shade50,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.chevron_right_rounded,
+                color: themeProvider.subTextColor.withOpacity(0.7),
+                size: 20,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -381,10 +465,10 @@ class StatusBadge extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: textColor.withOpacity(0.2)),
       ),
       child: Text(
@@ -393,6 +477,7 @@ class StatusBadge extends StatelessWidget {
           color: textColor,
           fontSize: 10,
           fontWeight: FontWeight.w900,
+          letterSpacing: 0.5,
         ),
       ),
     );
