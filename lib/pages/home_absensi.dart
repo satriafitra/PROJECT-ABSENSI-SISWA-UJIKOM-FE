@@ -143,23 +143,90 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // WIDGET NAVIGASI BARU: Tambahan untuk Tickets (Bantuan)
+  // WIDGET NAVIGASI BARU: Versi Clean White & Orange Accent
   Widget _buildTicketsAction(ThemeProvider themeProvider) {
-    return _actionButton(
-      themeProvider,
-      title: "Bantuan & Tiket",
-      subtitle: "Lapor masalah atau bug",
-      icon: Icons.support_agent_rounded,
-      color: const Color(0xFFF59E0B), // Amber color
+    return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => TicketListPage()),
         );
       },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white, // Background Putih Bersih
+          borderRadius: BorderRadius.circular(24), // Radius lebih besar agar modern
+          border: Border.all(color: Colors.grey.shade100, width: 1.5), // Border tipis agar tegas
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04), // Shadow sangat tipis
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            )
+          ],
+        ),
+        child: Row(
+          children: [
+            // Container Icon dengan aksen Orange
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFF6B00).withOpacity(0.1), // Orange pucat untuk bg icon
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Icon(
+                Icons.support_agent_rounded, 
+                color: Color(0xFFFF6B00), // Icon Orange
+                size: 30
+              ),
+            ),
+            const SizedBox(width: 16),
+            // Teks dengan warna gelap/hitam
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Pusat Bantuan",
+                    style: TextStyle(
+                      color: Color(0xFF1E293B), // Hitam Slate (lebih premium dari hitam pekat)
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    "Lapor masalah atau saran aplikasi",
+                    style: TextStyle(
+                      color: Colors.grey.shade500, // Abu-abu untuk deskripsi
+                      fontSize: 13,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Indikator Panah yang lebih minimalis
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.chevron_right_rounded, 
+                color: Colors.grey.shade400, 
+                size: 24
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
-
   // Template Button Action
   Widget _actionButton(ThemeProvider themeProvider, {
     required String title, 
