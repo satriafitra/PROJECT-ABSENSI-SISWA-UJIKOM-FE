@@ -13,6 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'marketplace.dart';
 import 'package:shimmer/shimmer.dart';
 import '../services/notification_service.dart';
+import 'ticket/ticket_list_page.dart';
 // Import halaman inventory kamu di sini; 
 
 class HomePage extends StatefulWidget {
@@ -88,6 +89,9 @@ class _HomePageState extends State<HomePage> {
               // --- SEKSI QUICK ACTIONS (NAVIGASI BARU) ---
               _buildQuickActions(themeProvider),
               
+              const SizedBox(height: 15),
+              _buildTicketsAction(themeProvider),
+              
               const SizedBox(height: 20),
               _permissionCard(context, themeProvider),
               const SizedBox(height: 25), 
@@ -136,6 +140,23 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ],
+    );
+  }
+
+  // WIDGET NAVIGASI BARU: Tambahan untuk Tickets (Bantuan)
+  Widget _buildTicketsAction(ThemeProvider themeProvider) {
+    return _actionButton(
+      themeProvider,
+      title: "Bantuan & Tiket",
+      subtitle: "Lapor masalah atau bug",
+      icon: Icons.support_agent_rounded,
+      color: const Color(0xFFF59E0B), // Amber color
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => TicketListPage()),
+        );
+      },
     );
   }
 
